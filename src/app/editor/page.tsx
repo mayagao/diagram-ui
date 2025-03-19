@@ -6,7 +6,6 @@ import { useDiagramStore } from "../../store/useDiagramStore";
 import { BlockType } from "../../types/diagram";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeftIcon,
   PlayIcon,
@@ -14,6 +13,7 @@ import {
   ArrowPathIcon,
   DocumentIcon,
 } from "@heroicons/react/24/outline";
+import { BlockConfigForm } from "../../components/BlockConfigForm/BlockConfigForm";
 
 const blockTypeIcons = {
   processor: CpuChipIcon,
@@ -23,6 +23,7 @@ const blockTypeIcons = {
 
 export default function EditorPage() {
   const addBlock = useDiagramStore((state) => state.addBlock);
+  const selectedBlockId = useDiagramStore((state) => state.selectedBlockId);
 
   const handleAddBlock = (type: BlockType) => {
     addBlock(type);
@@ -40,6 +41,26 @@ export default function EditorPage() {
           </Button>
           <h1 className="text-xl font-semibold">Diagram Editor</h1>
         </div>
+
+        {/* Centered Add Block buttons */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          {(Object.keys(blockTypeIcons) as BlockType[]).map((type) => {
+            const Icon = blockTypeIcons[type];
+            return (
+              <Button
+                key={type}
+                variant="outline"
+                size="icon"
+                className="rounded-full"
+                onClick={() => handleAddBlock(type)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            );
+          })}
+        </div>
+
         <Button>
           <PlayIcon className="h-4 w-4 mr-2" />
           Run Diagram
@@ -51,22 +72,17 @@ export default function EditorPage() {
         {/* Config Panel */}
         <div className="w-64 border-r bg-white">
           <div className="p-4">
-            <h2 className="font-medium mb-4">Add Blocks</h2>
-            <div className="space-y-2">
-              {(Object.keys(blockTypeIcons) as BlockType[]).map((type) => {
-                const Icon = blockTypeIcons[type];
-                return (
-                  <Button
-                    key={type}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => handleAddBlock(type)}
-                  >
-                    <Icon className="h-4 w-4 mr-2" />
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                );
-              })}
+            <h2 className="font-medium mb-4">Configuration</h2>
+            <div className="space-y-4">
+              <Card className="p-4">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                  Diagram Settings
+                </h3>
+                <div className="text-sm text-muted-foreground">
+                  Configure global diagram settings here
+                </div>
+              </Card>
+              {selectedBlockId && <BlockConfigForm blockId={selectedBlockId} />}
             </div>
           </div>
         </div>
