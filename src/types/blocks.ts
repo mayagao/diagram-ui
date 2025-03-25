@@ -15,16 +15,21 @@ export type BlockType =
   | "condition"
   | "action";
 
-export type BlockState = "idle" | "running" | "finished" | "error";
+export type BlockState = "idle" | "running" | "finished" | "error" | "paused";
 
 interface BaseBlockProps {
   title: string;
   description: string;
-  state?: "idle" | "running" | "finished" | "error";
+  state?: "idle" | "running" | "finished" | "error" | "paused";
   isInNotebook?: boolean;
   isCompact?: boolean;
-  runningAction?: string;
+  hideConnectors?: boolean;
   result?: BlockResult;
+  errorMessage?: string;
+  runningAction?: string;
+  onRun?: () => void;
+  onPause?: () => void;
+  onRerun?: () => void;
 }
 
 export interface TriggerBlockProps extends BaseBlockProps {

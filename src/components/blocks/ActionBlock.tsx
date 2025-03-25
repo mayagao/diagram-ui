@@ -14,6 +14,7 @@ interface ActionBlockProps {
   result?: BlockResult;
   isCompact?: boolean;
   errorMessage?: string;
+  hideConnectors?: boolean;
 }
 
 export default function ActionBlock({
@@ -27,6 +28,7 @@ export default function ActionBlock({
   result,
   isCompact = false,
   errorMessage,
+  hideConnectors = false,
 }: ActionBlockProps) {
   return (
     <Block
@@ -45,6 +47,7 @@ export default function ActionBlock({
       runningAction={runningAction}
       result={result}
       errorMessage={errorMessage}
+      hideConnectors={hideConnectors}
     />
   );
 }

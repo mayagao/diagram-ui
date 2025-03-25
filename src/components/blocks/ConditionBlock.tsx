@@ -1,6 +1,6 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
+import { BeakerIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface ConditionBlockProps {
@@ -27,6 +27,7 @@ export default function ConditionBlock({
   result,
   isCompact = false,
   errorMessage,
+  hideConnectors,
 }: ConditionBlockProps) {
   return (
     <Block
@@ -37,13 +38,14 @@ export default function ConditionBlock({
       inputs={1}
       outputs={2}
       color={BLOCK_COLORS.condition}
-      icon={ArrowsPointingOutIcon}
+      icon={BeakerIcon}
       size={size}
       isInDiagram={isInDiagram}
       isInNotebook={isInNotebook}
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
+      hideConnectors={hideConnectors}
       errorMessage={errorMessage}
     />
   );

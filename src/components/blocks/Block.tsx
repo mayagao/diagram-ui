@@ -1,11 +1,10 @@
 import { BlockProps, BlockResult } from "@/types/blocks";
 import {
-  PlayIcon, // for Trigger
-  FunnelIcon, // for Extraction
-  CpuChipIcon, // for Generation
-  ArrowsPointingOutIcon, // for Condition
+  ArrowDownCircleIcon, // for Trigger
+  DocumentArrowDownIcon, // for Extraction
+  SquaresPlusIcon, // for Generation
+  BeakerIcon, // for Condition
   BoltIcon, // for Action
-  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import {
@@ -19,6 +18,7 @@ import {
 } from "./BlockComponents";
 import { Spinner } from "@/components/ui/spinner";
 import { ReactNode } from "react";
+import { ActionArea } from "./BlockComponents/ActionArea";
 
 interface ExtendedBlockProps extends BlockProps {
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
@@ -30,17 +30,22 @@ interface ExtendedBlockProps extends BlockProps {
   result?: BlockResult;
   isCompact?: boolean;
   errorMessage?: string;
+  onRun?: () => void;
+  onPause?: () => void;
+  onRerun?: () => void;
 }
 
 const pulseAnimation = `
 `;
 
-const getStateStyles = (state: string, color: BlockProps["color"]) => {
+const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
   switch (state) {
     case "running":
       return "border-1 border-blue-100 animate-pulse-border bg-blue-50";
+    case "paused":
+      return "border-1 border-gray-300 bg-gray-50";
     case "finished":
-      return "border-1 border-gray-200 bg-gray-100";
+      return "border-1 border-gray-200 bg-purple-50";
     case "error":
       return "border-1 border-red-200 bg-red-50";
     default:
@@ -49,6 +54,7 @@ const getStateStyles = (state: string, color: BlockProps["color"]) => {
 };
 
 export default function Block(props: ExtendedBlockProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const {
     type,
     title,
@@ -65,6 +71,9 @@ export default function Block(props: ExtendedBlockProps) {
     runningAction,
     result,
     errorMessage,
+    onRun,
+    onPause,
+    onRerun,
   } = props;
 
   // Add a more visible console log
@@ -80,11 +89,25 @@ export default function Block(props: ExtendedBlockProps) {
       {isInNotebook ? (
         <NotebookView
           {...props}
+          isHovered={isHovered}
+          setIsHovered={setIsHovered}
           isRunning={isRunning}
           isFinished={isFinished}
+          onRun={onRun}
+          onPause={onPause}
+          onRerun={onRerun}
         />
       ) : (
-        <DiagramView {...props} isRunning={isRunning} isFinished={isFinished} />
+        <DiagramView
+          {...props}
+          isHovered={isHovered}
+          setIsHovered={setIsHovered}
+          isRunning={isRunning}
+          isFinished={isFinished}
+          onRun={onRun}
+          onPause={onPause}
+          onRerun={onRerun}
+        />
       )}
     </>
   );
@@ -104,7 +127,21 @@ function NotebookView({
   runningAction,
   result,
   errorMessage,
-}: ExtendedBlockProps & { isRunning: boolean; isFinished: boolean }) {
+  onRun,
+  onPause,
+  onRerun,
+  isHovered,
+  setIsHovered,
+  inputs,
+  outputs,
+}: ExtendedBlockProps & {
+  isRunning: boolean;
+  isFinished: boolean;
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
+  inputs: number;
+  outputs: number;
+}) {
   const isError = state === "error";
 
   return (
@@ -116,25 +153,37 @@ function NotebookView({
       icon={Icon}
       isCompact={isCompact}
       state={state}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="hover:shadow-md cursor-pointer"
     >
-      {renderNotebookContent()}
+      <div className="relative flex items-center gap-2">
+        {inputs > 0 && (
+          <div className="flex-shrink-0">
+            <InputConnector isLoading={isRunning} />
+          </div>
+        )}
+
+        <div className="flex-grow">{renderNotebookContent()}</div>
+
+        {outputs > 0 && (
+          <div className="flex-shrink-0">
+            <OutputConnector isLoading={isRunning} />
+          </div>
+        )}
+      </div>
     </NotebookBlock>
   );
 
   // Inner function to render the appropriate content based on state and compact mode
   function renderNotebookContent() {
     if (isCompact) {
-      // In compact mode, handle each state individually
-      if (isRunning && runningAction) {
+      // Add paused state handling for compact mode
+      if (state === "paused" && runningAction) {
         return (
-          <div className="">
-            <Spinner
-              size="sm"
-              className="text-blue-600 -ml-1 mr-2 flex-shrink-0 h-3 w-3"
-            />
-            <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
-              {runningAction}
-            </span>
+          <div className="text-xs text-gray-600 flex items-center gap-1">
+            <span className="font-medium text-gray-500">[Paused]</span>
+            <span className="truncate">{runningAction}</span>
           </div>
         );
       }
@@ -182,12 +231,16 @@ function NotebookView({
         </div>
       );
     } else {
-      // Non-compact mode - show all content stacked
+      // Non-compact mode
       return (
         <>
           <p className="text-sm text-gray-600">{description}</p>
-          {isRunning && runningAction && (
-            <RunningBlock action={runningAction} />
+          {state === "paused" && runningAction && (
+            <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs flex items-center gap-2">
+              <span className="font-medium text-gray-500">[Paused]</span>
+              <span className="text-gray-400">●</span>
+              <span className="truncate">{runningAction}</span>
+            </div>
           )}
           {isFinished && result && <OutputResult type={type} result={result} />}
         </>
@@ -212,15 +265,25 @@ function DiagramView({
   runningAction,
   result,
   errorMessage,
+  onRun,
+  onPause,
+  onRerun,
+  isHovered,
+  setIsHovered,
+  hideConnectors,
 }: ExtendedBlockProps & {
   isRunning: boolean;
   isFinished: boolean;
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
 }) {
   const isError = state === "error";
 
   return (
     <div className="relative mx-auto">
-      {inputs > 0 && <InputConnector isLoading={isRunning} />}
+      {inputs > 0 && !hideConnectors && (
+        <InputConnector isLoading={isRunning} />
+      )}
 
       <div
         className={`
@@ -234,7 +297,11 @@ function DiagramView({
           mx-auto
           overflow-hidden
           relative
+          hover:shadow-md
+          cursor-pointer
         `}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Header with icon and title */}
         <div className="flex items-start gap-2 relative px-2 py-2">
@@ -254,62 +321,38 @@ function DiagramView({
           </div>
           {/* Main content area - always render this for compact mode */}
 
-          {/* Status indicators in top right corner for compact mode */}
-          {renderStatusIndicator()}
+          {/* Replace renderStatusIndicator with ActionArea */}
+          <ActionArea
+            state={state}
+            isHovered={isHovered}
+            onRun={onRun}
+            onPause={onPause}
+            onRerun={onRerun}
+          />
         </div>
 
         {/* Only render this for non-compact mode */}
         {!isCompact && renderDefaultContent()}
       </div>
 
-      {outputs > 0 && <OutputConnector isLoading={isRunning} />}
+      {outputs > 0 && !hideConnectors && (
+        <OutputConnector isLoading={isRunning} />
+      )}
     </div>
   );
 
-  // Status indicator in top right (only in compact mode)
-  function renderStatusIndicator() {
-    if (!isCompact) return null;
-
-    if (isRunning) {
-      return (
-        <div style={{ right: "0px" }} className="self-end my-auto">
-          <Spinner size="sm" className="text-blue-600 h-3.5 w-3.5 " />
-        </div>
-      );
-    }
-
-    if (isFinished) {
-      return (
-        <div className="self-end w-4 h-4 flex items-center justify-center bg-green-700 rounded-full my-auto">
-          <CheckIcon
-            style={{ strokeWidth: 3.5, width: 12, height: 10 }}
-            className="text-white"
-          />
-        </div>
-      );
-    }
-
-    if (isError) {
-      return (
-        <div className="self-end w-4 h-4 flex items-center justify-center bg-red-600 rounded-full my-auto">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            style={{ width: 14, height: 14 }}
-            className="text-white"
-          >
-            <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-          </svg>
-        </div>
-      );
-    }
-
-    return null;
-  }
-
   // Render content for compact mode
   function renderCompactContent() {
+    // Add paused state handling
+    if (state === "paused" && runningAction) {
+      return (
+        <div className="text-xs text-gray-600 flex items-center gap-1">
+          <span className="font-medium text-gray-500">[Paused]</span>
+          <span className="truncate">{runningAction}</span>
+        </div>
+      );
+    }
+
     // 1. DEFAULT STATE: Show description text
     if (!isRunning && !isFinished && !isError) {
       return <div className="text-xs text-gray-600">{description}</div>;
@@ -343,12 +386,15 @@ function DiagramView({
 
   // Render content for default (non-compact) mode
   function renderDefaultContent() {
-    if (isRunning && runningAction) {
+    if (state === "paused" && runningAction) {
       return (
-        <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-gray-600 flex items-center">
-          <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
-            {runningAction}
-          </span>
+        <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-medium text-gray-500">(Paused)</span>
+            <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
+              {runningAction}
+            </span>
+          </div>
         </div>
       );
     }
@@ -414,10 +460,10 @@ function getBgColorByType(type: string) {
 
 // Export icons for the blocks
 export const blockIcons = {
-  trigger: PlayIcon,
-  extraction: FunnelIcon,
-  generation: CpuChipIcon,
-  condition: ArrowsPointingOutIcon,
+  trigger: ArrowDownCircleIcon,
+  extraction: DocumentArrowDownIcon,
+  generation: SquaresPlusIcon,
+  condition: BeakerIcon,
   action: BoltIcon,
 };
 

@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  PlayIcon,
+  ArrowDownCircleIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
@@ -8,8 +8,9 @@ import { Spinner } from "@/components/ui/spinner";
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
 import { BlockResult } from "@/types/blocks";
+import { BaseBlockProps } from "@/types/blocks";
 
-interface TriggerBlockProps {
+interface TriggerBlockProps extends BaseBlockProps {
   title: string;
   description?: string;
   state?: "idle" | "running" | "finished" | "error";
@@ -20,6 +21,7 @@ interface TriggerBlockProps {
   result?: BlockResult;
   isCompact?: boolean;
   errorMessage?: string;
+  hideConnectors?: boolean;
 }
 
 const TriggerBlock: React.FC<TriggerBlockProps> = ({
@@ -33,6 +35,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
   result,
   isCompact = false,
   errorMessage,
+  hideConnectors = false,
 }) => {
   const renderIcon = () => {
     if (state === "running")
@@ -41,7 +44,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
     if (state === "error")
       return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
-    return <PlayIcon className="h-5 w-5 text-gray-400" />;
+    return <ArrowDownCircleIcon className="h-5 w-5 text-gray-400" />;
   };
 
   const renderContent = () => {
@@ -90,7 +93,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       inputs={0}
       outputs={1}
       color={BLOCK_COLORS.trigger}
-      icon={PlayIcon}
+      icon={ArrowDownCircleIcon}
       size={size}
       isInDiagram={isInDiagram}
       isInNotebook={isInNotebook}
@@ -98,6 +101,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       runningAction={runningAction}
       result={result}
       errorMessage={errorMessage}
+      hideConnectors={hideConnectors}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center">

@@ -73,7 +73,7 @@ export function BlockIcon({
     >
       {Icon && (
         <Icon
-          className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+          className={isCompact ? "w-5 h-5" : "w-5 h-5"}
           style={{ color: getIconColor() }}
         />
       )}
@@ -249,7 +249,6 @@ export function NotebookBlock({
     </div>
   );
 }
-
 // Error message component
 export function ErrorBlock({
   message,

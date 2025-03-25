@@ -1,6 +1,6 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { CpuChipIcon } from "@heroicons/react/24/outline";
+import { SquaresPlusIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface GenerationBlockProps {
@@ -14,6 +14,7 @@ interface GenerationBlockProps {
   result?: BlockResult;
   isCompact?: boolean;
   errorMessage?: string;
+  hideConnectors?: boolean;
 }
 
 export default function GenerationBlock({
@@ -27,6 +28,7 @@ export default function GenerationBlock({
   result,
   isCompact = false,
   errorMessage,
+  hideConnectors = false,
 }: GenerationBlockProps) {
   return (
     <Block
@@ -37,7 +39,7 @@ export default function GenerationBlock({
       inputs={1}
       outputs={1}
       color={BLOCK_COLORS.generation}
-      icon={CpuChipIcon}
+      icon={SquaresPlusIcon}
       size={size}
       isInDiagram={isInDiagram}
       isInNotebook={isInNotebook}
@@ -45,6 +47,7 @@ export default function GenerationBlock({
       runningAction={runningAction}
       result={result}
       errorMessage={errorMessage}
+      hideConnectors={hideConnectors}
     />
   );
 }
