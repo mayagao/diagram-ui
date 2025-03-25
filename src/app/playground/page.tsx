@@ -1,84 +1,66 @@
+"use client";
+
 import Link from "next/link";
+import TriggerBlock from "@/components/blocks/TriggerBlock";
+import ExtractionBlock from "@/components/blocks/ExtractionBlock";
+import GenerationBlock from "@/components/blocks/GenerationBlock";
+import ConditionBlock from "@/components/blocks/ConditionBlock";
+import ActionBlock from "@/components/blocks/ActionBlock";
 
-const demos = [
-  {
-    category: "Building Blocks",
-    items: [
-      {
-        title: "Basic States",
-        description: "Explore idle, running, and finished states",
-        href: "/playground/blocks",
-      },
-      {
-        title: "Connection Points",
-        description: "Test different connection configurations",
-        href: "/playground/blocks/connections",
-      },
-    ],
-  },
-  {
-    category: "Canvas Features",
-    items: [
-      {
-        title: "Grid System",
-        description: "Test grid layouts and snapping",
-        href: "/playground/canvas",
-      },
-      {
-        title: "Drag and Drop",
-        description: "Experiment with block interactions",
-        href: "/playground/canvas/dnd",
-      },
-    ],
-  },
-  {
-    category: "Panels",
-    items: [
-      {
-        title: "Preview Panel",
-        description: "Input/Output preview layouts",
-        href: "/playground/panels/preview",
-      },
-      {
-        title: "Config Panel",
-        description: "Block configuration controls",
-        href: "/playground/panels/config",
-      },
-    ],
-  },
-];
-
-export default function PlaygroundPage() {
+export default function BlocksDemo() {
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen ">
+      <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold">Component Playground</h1>
-          <Link href="/" className="text-blue-500 hover:text-blue-600">
-            ← Back to Home
+          <h1 className="text-3xl font-bold">Workflow Blocks</h1>
+          <Link
+            href="/playground"
+            className="text-blue-500 hover:text-blue-400"
+          >
+            ← Back to Playground
           </Link>
         </div>
 
-        <div className="space-y-12">
-          {demos.map((section) => (
-            <div key={section.category}>
-              <h2 className="text-2xl font-semibold mb-4">
-                {section.category}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {section.items.map((demo) => (
-                  <Link
-                    key={demo.href}
-                    href={demo.href}
-                    className="p-4 border rounded-lg hover:border-blue-500 transition-colors"
-                  >
-                    <h3 className="text-lg font-medium mb-1">{demo.title}</h3>
-                    <p className="text-gray-600 text-sm">{demo.description}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="mb-12">
+          <h2 className="text-xl font-semibold mb-6">Trigger Blocks</h2>
+          <div className="flex flex-wrap gap-8 mb-12">
+            <TriggerBlock title="GitHub Repository" />
+            <TriggerBlock title="Webhook Event" />
+            <TriggerBlock title="Scheduled Task" />
+            <TriggerBlock title="Manual Trigger" />
+          </div>
+
+          <h2 className="text-xl font-semibold mb-6">Extraction Blocks</h2>
+          <div className="flex flex-wrap gap-8 mb-12">
+            <ExtractionBlock title="Extract JSON Data" />
+            <ExtractionBlock title="Parse Document" />
+            <ExtractionBlock title="Extract Table Data" />
+            <ExtractionBlock title="Extract Form Fields" />
+          </div>
+
+          <h2 className="text-xl font-semibold mb-6">Generation Blocks</h2>
+          <div className="flex flex-wrap gap-8 mb-12">
+            <GenerationBlock title="Generate Summary" />
+            <GenerationBlock title="Format Data" />
+            <GenerationBlock title="Translate Content" />
+            <GenerationBlock title="Transform JSON" />
+          </div>
+
+          <h2 className="text-xl font-semibold mb-6">Condition Blocks</h2>
+          <div className="flex flex-wrap gap-8 mb-12">
+            <ConditionBlock title="Check Status" />
+            <ConditionBlock title="Validate Data" />
+            <ConditionBlock title="Compare Values" />
+            <ConditionBlock title="Check Authentication" />
+          </div>
+
+          <h2 className="text-xl font-semibold mb-6">Action Blocks</h2>
+          <div className="flex flex-wrap gap-8 mb-12">
+            <ActionBlock title="Send Email" />
+            <ActionBlock title="Create Ticket" />
+            <ActionBlock title="Update Database" />
+            <ActionBlock title="Call API Endpoint" />
+          </div>
         </div>
       </div>
     </div>
