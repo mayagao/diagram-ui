@@ -13,6 +13,7 @@ interface ConditionBlockProps {
   runningAction?: string;
   result?: BlockResult;
   isCompact?: boolean;
+  errorMessage?: string;
 }
 
 export default function ConditionBlock({
@@ -25,6 +26,7 @@ export default function ConditionBlock({
   runningAction,
   result,
   isCompact = false,
+  errorMessage,
 }: ConditionBlockProps) {
   return (
     <Block
@@ -42,6 +44,7 @@ export default function ConditionBlock({
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
+      errorMessage={errorMessage}
     />
   );
 }

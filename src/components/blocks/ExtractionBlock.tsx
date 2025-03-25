@@ -1,6 +1,6 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { FunnelIcon } from "@heroicons/react/24/outline";
+import { DocumentMagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface ExtractionBlockProps {
@@ -13,11 +13,12 @@ interface ExtractionBlockProps {
   runningAction?: string;
   result?: BlockResult;
   isCompact?: boolean;
+  errorMessage?: string;
 }
 
 export default function ExtractionBlock({
   title,
-  description = "Pull structured data from sources",
+  description = "Extract structured data from content",
   state,
   size,
   isInDiagram,
@@ -25,6 +26,7 @@ export default function ExtractionBlock({
   runningAction,
   result,
   isCompact = false,
+  errorMessage,
 }: ExtractionBlockProps) {
   return (
     <Block
@@ -35,13 +37,14 @@ export default function ExtractionBlock({
       inputs={1}
       outputs={1}
       color={BLOCK_COLORS.extraction}
-      icon={FunnelIcon}
+      icon={DocumentMagnifyingGlassIcon}
       size={size}
       isInDiagram={isInDiagram}
       isInNotebook={isInNotebook}
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
+      errorMessage={errorMessage}
     />
   );
 }

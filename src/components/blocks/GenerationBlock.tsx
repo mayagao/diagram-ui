@@ -13,6 +13,7 @@ interface GenerationBlockProps {
   runningAction?: string;
   result?: BlockResult;
   isCompact?: boolean;
+  errorMessage?: string;
 }
 
 export default function GenerationBlock({
@@ -25,6 +26,7 @@ export default function GenerationBlock({
   runningAction,
   result,
   isCompact = false,
+  errorMessage,
 }: GenerationBlockProps) {
   return (
     <Block
@@ -42,6 +44,7 @@ export default function GenerationBlock({
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
+      errorMessage={errorMessage}
     />
   );
 }

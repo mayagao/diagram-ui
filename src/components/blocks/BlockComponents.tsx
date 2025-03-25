@@ -12,6 +12,7 @@ interface IconProps {
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
   type: BlockType;
   isCompact?: boolean;
+  state?: string;
 }
 
 interface NotebookBlockProps {
@@ -25,6 +26,7 @@ interface NotebookBlockProps {
   };
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
   children?: ReactNode;
+  state?: string;
 }
 
 interface OutputResultProps {
@@ -43,21 +45,27 @@ export function BlockIcon({
   icon: Icon,
   type,
   isCompact = false,
-}: IconProps) {
-  const iconColorValues: Record<BlockType, string> = {
-    trigger: "#2563eb", // blue-600
-    extraction: "#9333ea", // purple-600
-    generation: "#16a34a", // green-600
-    condition: "#ea580c", // orange-600
-    action: "#dc2626", // red-600
+  state = "idle",
+}: IconProps & { state?: string }) {
+  const getIconColor = () => {
+    switch (state) {
+      case "running":
+        return "#2563eb"; // blue-600
+      case "finished":
+        return "#16a34a"; // green-600
+      case "error":
+        return "#dc2626"; // red-600
+      default:
+        return "#64748b"; // gray-500 for default/idle state
+    }
   };
 
   return (
     <div
       className={`
-        ${color.light} 
-        ${isCompact ? "w-7 h-7" : "w-10 h-10"} 
-        rounded-lg 
+   
+        ${isCompact ? "w-6 h-6" : "w-10 h-10"} 
+        rounded 
         flex items-center justify-center
         flex-shrink-0
         ${isCompact ? "my-auto" : ""}
@@ -65,8 +73,8 @@ export function BlockIcon({
     >
       {Icon && (
         <Icon
-          className={isCompact ? "w-4 h-4" : "w-6 h-6"}
-          style={{ color: iconColorValues[type] }}
+          className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+          style={{ color: getIconColor() }}
         />
       )}
     </div>
@@ -74,10 +82,10 @@ export function BlockIcon({
 }
 
 // Connector dots for inputs and outputs
-export function InputConnector({ isLoading }: ConnectorProps) {
+export function InputConnector({}: ConnectorProps) {
   return (
-    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-      <div className="w-3 h-3 bg-gray-400 rounded-full" />
+    <div className="absolute z-10 -top-2 left-1/2 -translate-x-1/2 border border-4 rounded-full border-gray-50">
+      <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />
     </div>
   );
 }
@@ -85,7 +93,7 @@ export function InputConnector({ isLoading }: ConnectorProps) {
 export function OutputConnector({ isLoading }: ConnectorProps) {
   return (
     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-      <div className="w-3 h-3 bg-gray-400 rounded-full" />
+      <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />
     </div>
   );
 }
@@ -103,8 +111,8 @@ export function BlockContent({
   return (
     <div className="flex-1 overflow-hidden">
       <h3
-        className={`font-medium text-gray-800 ${
-          isCompact ? "text-sm truncate" : ""
+        className={`font-medium text-gray-800 text-sm truncate ${
+          isCompact ? "" : ""
         }`}
       >
         {title}
@@ -127,11 +135,7 @@ export function RunningBlock({
   isCompact?: boolean;
 }) {
   return (
-    <div
-      className={`${
-        isCompact ? "" : "mt-2"
-      } p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 flex items-center truncate`}
-    >
+    <div className={`mt-2 text-xs text-blue-700 flex items-center`}>
       <Spinner size="sm" className="text-blue-600 -ml-1 mr-2 flex-shrink-0" />
       <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
         {action}
@@ -146,29 +150,8 @@ export function OutputResult({
   result,
   isCompact = false,
 }: OutputResultProps & { isCompact?: boolean }) {
-  const getBgColor = () => {
-    switch (type) {
-      case "trigger":
-        return "bg-blue-50 border-blue-200 text-blue-700";
-      case "extraction":
-        return "bg-purple-50 border-purple-200 text-purple-700";
-      case "generation":
-        return "bg-green-50 border-green-200 text-green-700";
-      case "condition":
-        return "bg-orange-50 border-orange-200 text-orange-700";
-      case "action":
-        return "bg-red-50 border-red-200 text-red-700";
-      default:
-        return "bg-gray-50 border-gray-200 text-gray-700";
-    }
-  };
-
   return (
-    <div
-      className={`${
-        isCompact ? "" : "mt-2"
-      } p-2 border rounded-lg text-xs ${getBgColor()}`}
-    >
+    <div className={`mt-2 p-2 border rounded-lg text-xs`}>
       <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
         {result.summary}
       </div>
@@ -195,15 +178,25 @@ export function NotebookBlock({
   icon: Icon,
   isCompact = false,
   children,
+  state = "idle",
 }: NotebookBlockProps & { isCompact?: boolean }) {
-  // Define icon colors for inline display
-  const iconColorValues: Record<BlockType, string> = {
-    trigger: "#2563eb", // blue-600
-    extraction: "#9333ea", // purple-600
-    generation: "#16a34a", // green-600
-    condition: "#ea580c", // orange-600
-    action: "#dc2626", // red-600
-  };
+  // Class for pulsing border animation
+  const borderClass =
+    state === "running"
+      ? "border-blue-400 animate-pulse-border"
+      : state === "finished"
+      ? "border-green-100"
+      : state === "error"
+      ? "border-red-400"
+      : "border-gray-200";
+
+  // Background color based on state
+  const bgClass =
+    state === "running"
+      ? "bg-blue-50"
+      : state === "error"
+      ? "bg-red-50"
+      : "bg-white";
 
   return (
     <div
@@ -211,9 +204,9 @@ export function NotebookBlock({
         w-full 
         ${isCompact ? "min-h-[52px]" : "min-h-[80px]"}
         p-3
-        bg-white 
+        ${bgClass}
         border 
-        border-gray-200 
+        ${borderClass}
         rounded-xl
         overflow-hidden
         relative
@@ -230,7 +223,14 @@ export function NotebookBlock({
             >
               <Icon
                 className={isCompact ? "w-3 h-3" : "w-3.5 h-3.5"}
-                style={{ color: iconColorValues[type] }}
+                style={{
+                  color:
+                    state === "running"
+                      ? "#2563eb" // blue for running
+                      : state === "finished"
+                      ? "#16a34a" // green for finished
+                      : "#64748b", // gray for default
+                }}
               />
             </div>
           )}
@@ -246,6 +246,37 @@ export function NotebookBlock({
         {/* Content below the header - even in compact mode */}
         <div className="w-full">{children}</div>
       </div>
+    </div>
+  );
+}
+
+// Error message component
+export function ErrorBlock({
+  message,
+  isCompact = false,
+}: {
+  message: string;
+  isCompact?: boolean;
+}) {
+  return (
+    <div className={`mt-2 text-xs text-red-700 flex items-center`}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 mr-1.5 flex-shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+      <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
+        {message}
+      </span>
     </div>
   );
 }

@@ -13,6 +13,7 @@ interface ActionBlockProps {
   runningAction?: string;
   result?: BlockResult;
   isCompact?: boolean;
+  errorMessage?: string;
 }
 
 export default function ActionBlock({
@@ -25,6 +26,7 @@ export default function ActionBlock({
   runningAction,
   result,
   isCompact = false,
+  errorMessage,
 }: ActionBlockProps) {
   return (
     <Block
@@ -42,6 +44,7 @@ export default function ActionBlock({
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
+      errorMessage={errorMessage}
     />
   );
 }

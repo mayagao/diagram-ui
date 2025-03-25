@@ -1,6 +1,12 @@
+import React from "react";
+import {
+  PlayIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
+import { Spinner } from "@/components/ui/spinner";
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { PlayIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface TriggerBlockProps {
@@ -13,9 +19,10 @@ interface TriggerBlockProps {
   runningAction?: string;
   result?: BlockResult;
   isCompact?: boolean;
+  errorMessage?: string;
 }
 
-export default function TriggerBlock({
+const TriggerBlock: React.FC<TriggerBlockProps> = ({
   title,
   description = "Initiates workflow execution",
   state,
@@ -25,7 +32,55 @@ export default function TriggerBlock({
   runningAction,
   result,
   isCompact = false,
-}: TriggerBlockProps) {
+  errorMessage,
+}) => {
+  const renderIcon = () => {
+    if (state === "running")
+      return <Spinner className="h-5 w-5 text-blue-500" />;
+    if (state === "finished")
+      return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+    if (state === "error")
+      return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
+    return <PlayIcon className="h-5 w-5 text-gray-400" />;
+  };
+
+  const renderContent = () => {
+    if (state === "running") {
+      return (
+        <div className="mt-2 text-blue-600">
+          <p className="font-medium">{runningAction}</p>
+        </div>
+      );
+    }
+
+    if (state === "finished" && result) {
+      return (
+        <div className="mt-2">
+          <p className="font-medium text-green-600">{result.summary}</p>
+          {!isCompact && result.data && (
+            <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-32">
+              {JSON.stringify(result.data, null, 2)}
+            </pre>
+          )}
+        </div>
+      );
+    }
+
+    if (state === "error") {
+      return (
+        <div className="mt-2">
+          <p className="font-medium text-red-600">
+            {errorMessage || "An error occurred"}
+          </p>
+        </div>
+      );
+    }
+
+    return isCompact ? null : (
+      <p className="mt-2 text-gray-600">{description}</p>
+    );
+  };
+
   return (
     <Block
       type="trigger"
@@ -42,6 +97,25 @@ export default function TriggerBlock({
       isCompact={isCompact}
       runningAction={runningAction}
       result={result}
-    />
+      errorMessage={errorMessage}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-center">
+          <div className="mr-3">{renderIcon()}</div>
+          <h3 className="font-medium">{title}</h3>
+        </div>
+        {state === "error" && (
+          <div className="text-red-500">
+            <ExclamationTriangleIcon className="h-5 w-5" />
+          </div>
+        )}
+      </div>
+      {!isCompact && !state && (
+        <p className="mt-2 text-gray-600">{description}</p>
+      )}
+      {renderContent()}
+    </Block>
   );
-}
+};
+
+export default TriggerBlock;

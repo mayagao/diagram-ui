@@ -13,7 +13,6 @@ export default function BlocksDemo() {
   const [isNotebook, setIsNotebook] = useState(false);
   const [isCompact, setIsCompact] = useState(true);
   const [runningActionIndex, setRunningActionIndex] = useState(0);
-  const [compactUpdateTrigger, setCompactUpdateTrigger] = useState({});
 
   // Rotate through running actions for dynamic demonstration
   useEffect(() => {
@@ -26,10 +25,80 @@ export default function BlocksDemo() {
 
   // Get current running action for a specific block type
   const getCurrentAction = (type: string, index: number) => {
-    return (
-      workflowBlocks[type][index].actions?.[runningActionIndex] ||
-      "Processing..."
-    );
+    const block = workflowBlocks[type][index];
+    return block.actions?.[runningActionIndex] || "Processing...";
+  };
+
+  // Generate standard error message for a block type
+  const getErrorMessage = (blockType: string) => {
+    // Extract error messages from the mock data if available
+    const errorData = workflowBlocks[blockType][0].result?.data;
+    if (errorData && "error" in errorData && errorData.error) {
+      return String(errorData.error);
+    }
+
+    if (
+      errorData &&
+      "errorMessages" in errorData &&
+      Array.isArray(errorData.errorMessages)
+    ) {
+      return (
+        errorData.errorMessages[0] ||
+        `Failed to initialize ${blockType}: Invalid configuration.`
+      );
+    }
+
+    // For the rules block, use the specific validation error message
+    if (blockType === "rules" && errorData && "details" in errorData) {
+      const details = errorData.details as any[];
+      const failedRule = details?.find(
+        (detail: any) => detail.status === "failed"
+      );
+      if (failedRule) {
+        return (
+          failedRule.message || `Rule validation failed: ${failedRule.rule}`
+        );
+      }
+    }
+
+    return `Failed to initialize ${blockType}: Invalid configuration.`;
+  };
+
+  // Helper to safely format result data to match component expectations
+  const formatResult = (result: any) => {
+    if (!result) return undefined;
+
+    // Helper to safely stringify any value
+    const safeStringify = (
+      value: any
+    ): string | number | boolean | string[] | null => {
+      if (value === null) return null;
+      if (typeof value === "string") return value;
+      if (typeof value === "number") return value;
+      if (typeof value === "boolean") return value;
+      if (Array.isArray(value)) {
+        return value.map((item) =>
+          typeof item === "string" ? item : JSON.stringify(item)
+        );
+      }
+      if (typeof value === "object") {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    };
+
+    // Process the data object to ensure all values are properly stringified
+    const processedData = result.data
+      ? Object.entries(result.data).reduce((acc, [key, value]) => {
+          acc[key] = safeStringify(value);
+          return acc;
+        }, {} as Record<string, string | number | boolean | string[] | null>)
+      : undefined;
+
+    return {
+      summary: result.summary || "",
+      data: processedData,
+    };
   };
 
   return (
@@ -67,14 +136,7 @@ export default function BlocksDemo() {
                   <input
                     type="checkbox"
                     checked={isCompact}
-                    onChange={(e) => {
-                      const newValue = e.target.checked;
-                      console.log("Setting isCompact to:", newValue);
-                      setIsCompact(newValue);
-
-                      // Force re-render by creating a new object reference
-                      setCompactUpdateTrigger({});
-                    }}
+                    onChange={(e) => setIsCompact(e.target.checked)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
@@ -119,10 +181,10 @@ export default function BlocksDemo() {
                     Running
                   </h3>
                   <TriggerBlock
-                    title={workflowBlocks.trigger[1].title}
-                    description={workflowBlocks.trigger[1].description}
+                    title={workflowBlocks.trigger[0].title}
+                    description={workflowBlocks.trigger[0].description}
                     state="running"
-                    runningAction={getCurrentAction("trigger", 1)}
+                    runningAction={getCurrentAction("trigger", 0)}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -133,10 +195,24 @@ export default function BlocksDemo() {
                     Completed
                   </h3>
                   <TriggerBlock
-                    title={workflowBlocks.trigger[2].title}
-                    description={workflowBlocks.trigger[2].description}
+                    title={workflowBlocks.trigger[0].title}
+                    description={workflowBlocks.trigger[0].description}
                     state="finished"
-                    result={workflowBlocks.trigger[2].result}
+                    result={formatResult(workflowBlocks.trigger[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <TriggerBlock
+                    title={workflowBlocks.trigger[0].title}
+                    description={workflowBlocks.trigger[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("trigger")}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -169,10 +245,10 @@ export default function BlocksDemo() {
                     Running
                   </h3>
                   <ExtractionBlock
-                    title={workflowBlocks.extraction[1].title}
-                    description={workflowBlocks.extraction[1].description}
+                    title={workflowBlocks.extraction[0].title}
+                    description={workflowBlocks.extraction[0].description}
                     state="running"
-                    runningAction={getCurrentAction("extraction", 1)}
+                    runningAction={getCurrentAction("extraction", 0)}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -183,10 +259,88 @@ export default function BlocksDemo() {
                     Completed
                   </h3>
                   <ExtractionBlock
-                    title={workflowBlocks.extraction[2].title}
-                    description={workflowBlocks.extraction[2].description}
+                    title={workflowBlocks.extraction[0].title}
+                    description={workflowBlocks.extraction[0].description}
                     state="finished"
-                    result={workflowBlocks.extraction[2].result}
+                    result={formatResult(workflowBlocks.extraction[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <ExtractionBlock
+                    title={workflowBlocks.extraction[0].title}
+                    description={workflowBlocks.extraction[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("extraction")}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Rules Blocks Section */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold mb-4">Rules Blocks</h2>
+
+            {/* States Display */}
+            <div className="bg-gray-50 p-6 rounded-lg mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Default
+                  </h3>
+                  <ConditionBlock
+                    title={workflowBlocks.rules[0].title}
+                    description={workflowBlocks.rules[0].description}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Running
+                  </h3>
+                  <ConditionBlock
+                    title={workflowBlocks.rules[0].title}
+                    description={workflowBlocks.rules[0].description}
+                    state="running"
+                    runningAction={getCurrentAction("rules", 0)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Completed
+                  </h3>
+                  <ConditionBlock
+                    title={workflowBlocks.rules[0].title}
+                    description={workflowBlocks.rules[0].description}
+                    state="finished"
+                    result={formatResult(workflowBlocks.rules[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <ConditionBlock
+                    title={workflowBlocks.rules[0].title}
+                    description={workflowBlocks.rules[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("rules")}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -219,10 +373,10 @@ export default function BlocksDemo() {
                     Running
                   </h3>
                   <GenerationBlock
-                    title={workflowBlocks.generation[1].title}
-                    description={workflowBlocks.generation[1].description}
+                    title={workflowBlocks.generation[0].title}
+                    description={workflowBlocks.generation[0].description}
                     state="running"
-                    runningAction={getCurrentAction("generation", 1)}
+                    runningAction={getCurrentAction("generation", 0)}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -233,10 +387,24 @@ export default function BlocksDemo() {
                     Completed
                   </h3>
                   <GenerationBlock
-                    title={workflowBlocks.generation[2].title}
-                    description={workflowBlocks.generation[2].description}
+                    title={workflowBlocks.generation[0].title}
+                    description={workflowBlocks.generation[0].description}
                     state="finished"
-                    result={workflowBlocks.generation[2].result}
+                    result={formatResult(workflowBlocks.generation[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <GenerationBlock
+                    title={workflowBlocks.generation[0].title}
+                    description={workflowBlocks.generation[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("generation")}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -269,10 +437,10 @@ export default function BlocksDemo() {
                     Running
                   </h3>
                   <ConditionBlock
-                    title={workflowBlocks.condition[1].title}
-                    description={workflowBlocks.condition[1].description}
+                    title={workflowBlocks.condition[0].title}
+                    description={workflowBlocks.condition[0].description}
                     state="running"
-                    runningAction={getCurrentAction("condition", 1)}
+                    runningAction={getCurrentAction("condition", 0)}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -283,10 +451,24 @@ export default function BlocksDemo() {
                     Completed
                   </h3>
                   <ConditionBlock
-                    title={workflowBlocks.condition[2].title}
-                    description={workflowBlocks.condition[2].description}
+                    title={workflowBlocks.condition[0].title}
+                    description={workflowBlocks.condition[0].description}
                     state="finished"
-                    result={workflowBlocks.condition[2].result}
+                    result={formatResult(workflowBlocks.condition[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <ConditionBlock
+                    title={workflowBlocks.condition[0].title}
+                    description={workflowBlocks.condition[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("condition")}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -319,10 +501,10 @@ export default function BlocksDemo() {
                     Running
                   </h3>
                   <ActionBlock
-                    title={workflowBlocks.action[1].title}
-                    description={workflowBlocks.action[1].description}
+                    title={workflowBlocks.action[0].title}
+                    description={workflowBlocks.action[0].description}
                     state="running"
-                    runningAction={getCurrentAction("action", 1)}
+                    runningAction={getCurrentAction("action", 0)}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -333,10 +515,24 @@ export default function BlocksDemo() {
                     Completed
                   </h3>
                   <ActionBlock
-                    title={workflowBlocks.action[2].title}
-                    description={workflowBlocks.action[2].description}
+                    title={workflowBlocks.action[0].title}
+                    description={workflowBlocks.action[0].description}
                     state="finished"
-                    result={workflowBlocks.action[2].result}
+                    result={formatResult(workflowBlocks.action[0].result)}
+                    isInNotebook={isNotebook}
+                    isCompact={isCompact}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-600 mb-3">
+                    Error
+                  </h3>
+                  <ActionBlock
+                    title={workflowBlocks.action[0].title}
+                    description={workflowBlocks.action[0].description}
+                    state="error"
+                    errorMessage={getErrorMessage("action")}
                     isInNotebook={isNotebook}
                     isCompact={isCompact}
                   />
@@ -352,31 +548,31 @@ export default function BlocksDemo() {
             {isNotebook ? (
               <div className="space-y-4">
                 <TriggerBlock
-                  title="Email Receiver"
+                  title={workflowBlocks.trigger[0].title}
                   description={workflowBlocks.trigger[0].description}
                   state="finished"
-                  result={workflowBlocks.trigger[0].result}
+                  result={formatResult(workflowBlocks.trigger[0].result)}
                   isInNotebook={true}
                   isCompact={isCompact}
                 />
                 <ExtractionBlock
-                  title="MedClaim Extractor"
+                  title={workflowBlocks.extraction[0].title}
                   description={workflowBlocks.extraction[0].description}
                   state="finished"
-                  result={workflowBlocks.extraction[0].result}
+                  result={formatResult(workflowBlocks.extraction[0].result)}
                   isInNotebook={true}
                   isCompact={isCompact}
                 />
-                <GenerationBlock
-                  title="Excel Report Generator"
-                  description={workflowBlocks.generation[0].description}
-                  state="running"
-                  runningAction={getCurrentAction("generation", 0)}
+                <ConditionBlock
+                  title={workflowBlocks.rules[0].title}
+                  description={workflowBlocks.rules[0].description}
+                  state="error"
+                  errorMessage={getErrorMessage("rules")}
                   isInNotebook={true}
                   isCompact={isCompact}
                 />
                 <ActionBlock
-                  title="SendEmail Notification"
+                  title={workflowBlocks.action[0].title}
                   description={workflowBlocks.action[0].description}
                   isInNotebook={true}
                   isCompact={isCompact}
@@ -385,34 +581,34 @@ export default function BlocksDemo() {
             ) : (
               <div className="flex flex-col items-center space-y-8">
                 <TriggerBlock
-                  title="Email Receiver"
+                  title={workflowBlocks.trigger[0].title}
                   description={workflowBlocks.trigger[0].description}
                   state="finished"
-                  result={workflowBlocks.trigger[0].result}
+                  result={formatResult(workflowBlocks.trigger[0].result)}
                   isInNotebook={false}
                   isCompact={isCompact}
                 />
                 <div className="h-8 w-0.5 bg-gray-300"></div>
                 <ExtractionBlock
-                  title="MedClaim Extractor"
+                  title={workflowBlocks.extraction[0].title}
                   description={workflowBlocks.extraction[0].description}
                   state="finished"
-                  result={workflowBlocks.extraction[0].result}
+                  result={formatResult(workflowBlocks.extraction[0].result)}
                   isInNotebook={false}
                   isCompact={isCompact}
                 />
                 <div className="h-8 w-0.5 bg-gray-300"></div>
-                <GenerationBlock
-                  title="Excel Report Generator"
-                  description={workflowBlocks.generation[0].description}
-                  state="running"
-                  runningAction={getCurrentAction("generation", 0)}
+                <ConditionBlock
+                  title={workflowBlocks.rules[0].title}
+                  description={workflowBlocks.rules[0].description}
+                  state="error"
+                  errorMessage={getErrorMessage("rules")}
                   isInNotebook={false}
                   isCompact={isCompact}
                 />
                 <div className="h-8 w-0.5 bg-gray-300"></div>
                 <ActionBlock
-                  title="SendEmail Notification"
+                  title={workflowBlocks.action[0].title}
                   description={workflowBlocks.action[0].description}
                   isInNotebook={false}
                   isCompact={isCompact}
