@@ -172,7 +172,7 @@ export default function BlocksDemo() {
           title={workflowBlocks[type][index].title}
           description={workflowBlocks[type][index].description}
           state="paused"
-          runningAction={`Analysis paused at: ${getCurrentAction(type, index)}`}
+          runningAction={`Analysis paused`}
           isInNotebook={isNotebook}
           isCompact={isCompact}
           hideConnectors={true}
@@ -367,90 +367,6 @@ export default function BlocksDemo() {
             <div className="bg-gray-50 p-6 rounded-lg">
               {renderBlockStates(ActionBlock, "action")}
             </div>
-          </div>
-
-          {/* Example Workflow */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">Workflow Example</h2>
-
-            {isNotebook ? (
-              <div className="space-y-4">
-                <TriggerBlock
-                  title={workflowBlocks.trigger[0].title}
-                  description={workflowBlocks.trigger[0].description}
-                  state="finished"
-                  result={formatResult(workflowBlocks.trigger[0].result)}
-                  isInNotebook={true}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <ExtractionBlock
-                  title={workflowBlocks.extraction[0].title}
-                  description={workflowBlocks.extraction[0].description}
-                  state="finished"
-                  result={formatResult(workflowBlocks.extraction[0].result)}
-                  isInNotebook={true}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <ConditionBlock
-                  title={workflowBlocks.rules[0].title}
-                  description={workflowBlocks.rules[0].description}
-                  state="error"
-                  errorMessage={getErrorMessage("rules")}
-                  isInNotebook={true}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <ActionBlock
-                  title={workflowBlocks.action[0].title}
-                  description={workflowBlocks.action[0].description}
-                  isInNotebook={true}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col items-center space-y-8">
-                <TriggerBlock
-                  title={workflowBlocks.trigger[0].title}
-                  description={workflowBlocks.trigger[0].description}
-                  state="finished"
-                  result={formatResult(workflowBlocks.trigger[0].result)}
-                  isInNotebook={false}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <div className="h-8 w-0.5 bg-gray-300"></div>
-                <ExtractionBlock
-                  title={workflowBlocks.extraction[0].title}
-                  description={workflowBlocks.extraction[0].description}
-                  state="finished"
-                  result={formatResult(workflowBlocks.extraction[0].result)}
-                  isInNotebook={false}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <div className="h-8 w-0.5 bg-gray-300"></div>
-                <ConditionBlock
-                  title={workflowBlocks.rules[0].title}
-                  description={workflowBlocks.rules[0].description}
-                  state="error"
-                  errorMessage={getErrorMessage("rules")}
-                  isInNotebook={false}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-                <div className="h-8 w-0.5 bg-gray-300"></div>
-                <ActionBlock
-                  title={workflowBlocks.action[0].title}
-                  description={workflowBlocks.action[0].description}
-                  isInNotebook={false}
-                  isCompact={isCompact}
-                  hideConnectors={true}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>

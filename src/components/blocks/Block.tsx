@@ -33,6 +33,7 @@ interface ExtendedBlockProps extends BlockProps {
   onRun?: () => void;
   onPause?: () => void;
   onRerun?: () => void;
+  customResultRenderer?: (result: BlockResult) => React.ReactNode;
 }
 
 const pulseAnimation = `
@@ -43,9 +44,9 @@ const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
     case "running":
       return "border-1 border-blue-100 animate-pulse-border bg-blue-50";
     case "paused":
-      return "border-1 border-gray-300 bg-gray-50";
+      return "border-1 border-gray-300 bg-white";
     case "finished":
-      return "border-1 border-gray-200 bg-purple-50";
+      return "border-1 border-gray-200 bg-gray-50";
     case "error":
       return "border-1 border-red-200 bg-red-50";
     default:
@@ -74,6 +75,7 @@ export default function Block(props: ExtendedBlockProps) {
     onRun,
     onPause,
     onRerun,
+    customResultRenderer,
   } = props;
 
   // Add a more visible console log
@@ -134,6 +136,7 @@ function NotebookView({
   setIsHovered,
   inputs,
   outputs,
+  customResultRenderer,
 }: ExtendedBlockProps & {
   isRunning: boolean;
   isFinished: boolean;
@@ -181,8 +184,7 @@ function NotebookView({
       // Add paused state handling for compact mode
       if (state === "paused" && runningAction) {
         return (
-          <div className="text-xs text-gray-600 flex items-center gap-1">
-            <span className="font-medium text-gray-500">[Paused]</span>
+          <div className="text-xs text-gray-600 flex items-center gap-1 bg-gray-50">
             <span className="truncate">{runningAction}</span>
           </div>
         );
@@ -191,20 +193,6 @@ function NotebookView({
       if (isError && errorMessage) {
         return (
           <div className="text-xs text-red-700 flex items-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3 w-3 mr-1.5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
             <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
               {errorMessage}
             </span>
@@ -213,6 +201,11 @@ function NotebookView({
       }
 
       if (isFinished && result) {
+        // Use custom renderer if provided
+        if (customResultRenderer) {
+          return customResultRenderer(result);
+        }
+
         return (
           <div
             className={`px-2 py-1 rounded-md text-xs ${getBgColorByType(type)}`}
@@ -237,12 +230,18 @@ function NotebookView({
           <p className="text-sm text-gray-600">{description}</p>
           {state === "paused" && runningAction && (
             <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs flex items-center gap-2">
-              <span className="font-medium text-gray-500">[Paused]</span>
-              <span className="text-gray-400">●</span>
               <span className="truncate">{runningAction}</span>
             </div>
           )}
-          {isFinished && result && <OutputResult type={type} result={result} />}
+          {isFinished && result && (
+            <>
+              {customResultRenderer ? (
+                customResultRenderer(result)
+              ) : (
+                <OutputResult type={type} result={result} />
+              )}
+            </>
+          )}
         </>
       );
     }
@@ -271,6 +270,7 @@ function DiagramView({
   isHovered,
   setIsHovered,
   hideConnectors,
+  customResultRenderer,
 }: ExtendedBlockProps & {
   isRunning: boolean;
   isFinished: boolean;
@@ -288,12 +288,12 @@ function DiagramView({
       <div
         className={`
           w-64
-          ${isCompact ? "min-h-[52px]" : "min-h-[80px]"}
+          min-h-[52px]
           rounded-md
           ${getStateStyles(state, color)} 
           transition-all duration-200
           ${isRunning ? "bg-blue-50" : ""}
-          flex flex-col gap-1
+          flex flex-col 
           mx-auto
           overflow-hidden
           relative
@@ -304,14 +304,14 @@ function DiagramView({
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Header with icon and title */}
-        <div className="flex items-start gap-2 relative px-2 py-2">
+        <div className="flex items-center gap-2 relative px-2 py-2">
           <BlockIcon
             color={color}
             icon={Icon}
             type={type}
             isCompact={isCompact}
           />
-          <div className="flex flex-col gap-1 truncate flex-1">
+          <div className="flex flex-col truncate flex-1">
             <BlockContent
               title={title}
               description={description}
@@ -319,9 +319,6 @@ function DiagramView({
             />
             {isCompact && renderCompactContent()}
           </div>
-          {/* Main content area - always render this for compact mode */}
-
-          {/* Replace renderStatusIndicator with ActionArea */}
           <ActionArea
             state={state}
             isHovered={isHovered}
@@ -330,7 +327,6 @@ function DiagramView({
             onRerun={onRerun}
           />
         </div>
-
         {/* Only render this for non-compact mode */}
         {!isCompact && renderDefaultContent()}
       </div>
@@ -347,7 +343,6 @@ function DiagramView({
     if (state === "paused" && runningAction) {
       return (
         <div className="text-xs text-gray-600 flex items-center gap-1">
-          <span className="font-medium text-gray-500">[Paused]</span>
           <span className="truncate">{runningAction}</span>
         </div>
       );
@@ -372,8 +367,18 @@ function DiagramView({
       );
     }
 
-    // 4. FINISHED STATE: Show result summary
+    // 4. FINISHED STATE: Show result summary or custom renderer
     if (isFinished && result) {
+      // Use custom renderer if provided
+      if (customResultRenderer) {
+        return (
+          <div className="text-xs text-gray-600">
+            {customResultRenderer(result)}
+          </div>
+        );
+      }
+
+      // Otherwise use the default summary
       return (
         <div className={`text-xs text-gray-600`}>
           <div className="truncate">{result.summary}</div>
@@ -388,54 +393,44 @@ function DiagramView({
   function renderDefaultContent() {
     if (state === "paused" && runningAction) {
       return (
-        <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-gray-500">(Paused)</span>
-            <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
-              {runningAction}
-            </span>
-          </div>
+        <div className="px-3 text-xs border-t py-1 border-gray-100 bg-gray-50">
+          <span className="truncate">{runningAction}</span>
         </div>
       );
     }
 
     if (isError && errorMessage) {
       return (
-        <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 mr-1.5 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <span className="overflow-hidden whitespace-nowrap text-ellipsis w-full">
-            {errorMessage}
-          </span>
+        <div className="px-2 py-1 truncate border-t border-gray-100 text-xs bg-red-100 text-red-700">
+          {errorMessage}
         </div>
       );
     }
 
     if (isFinished && result) {
+      // Use custom renderer if provided
+      if (customResultRenderer) {
+        return (
+          <div className="p-2 text-xs">{customResultRenderer(result)}</div>
+        );
+      }
+
+      // Otherwise use default rendering
       return (
-        <div className={`border rounded-lg text-xs ${getBgColorByType(type)}`}>
-          <div className="font-medium p-2 overflow-hidden whitespace-nowrap text-ellipsis">
-            {result.summary}
-          </div>
-          {result.data && (
-            <div className="mt-2 text-sm">{renderData(result.data)}</div>
-          )}
+        <div className={` text-xs `}>
+          <div className="p-2 line-clamp-2">{result.summary}</div>
+          {result.data && <div className="">{renderData(result.data)}</div>}
         </div>
       );
     }
 
+    if (isRunning && runningAction) {
+      return (
+        <div className="px-2 py-1 text-xs text-blue-700 truncate bg-blue-100">
+          {runningAction}
+        </div>
+      );
+    }
     return null;
   }
 }

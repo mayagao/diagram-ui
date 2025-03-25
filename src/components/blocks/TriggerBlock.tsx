@@ -3,14 +3,14 @@ import {
   ArrowDownCircleIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  DocumentIcon,
 } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { BlockResult } from "@/types/blocks";
-import { BaseBlockProps } from "@/types/blocks";
+import { BlockResult, BlockProps } from "@/types/blocks";
 
-interface TriggerBlockProps extends BaseBlockProps {
+interface TriggerBlockProps extends Omit<BlockProps, "type"> {
   title: string;
   description?: string;
   state?: "idle" | "running" | "finished" | "error";
@@ -22,6 +22,9 @@ interface TriggerBlockProps extends BaseBlockProps {
   isCompact?: boolean;
   errorMessage?: string;
   hideConnectors?: boolean;
+  onRun?: () => void;
+  onPause?: () => void;
+  onRerun?: () => void;
 }
 
 const TriggerBlock: React.FC<TriggerBlockProps> = ({
@@ -36,6 +39,9 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
   isCompact = false,
   errorMessage,
   hideConnectors = false,
+  onRun,
+  onPause,
+  onRerun,
 }) => {
   const renderIcon = () => {
     if (state === "running")
@@ -84,6 +90,28 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
     );
   };
 
+  // Custom renderer for trigger data
+  const renderTriggerData = (result: BlockResult) => {
+    if (!result || !result.data) return null;
+
+    const { filename, documentType, pageCount } = result.data;
+
+    return (
+      <div className="mt-2 text-xs">
+        <div className="font-medium text-gray-800 flex items-center">
+          <DocumentIcon className="h-4 w-4 mr-1 text-gray-500" />
+          {filename || "Untitled Document"}
+        </div>
+        <div className="text-gray-600 flex items-center justify-between mt-1">
+          <span>{documentType || "Unknown Type"}</span>
+          <span>
+            {pageCount ? `${pageCount} page${pageCount !== 1 ? "s" : ""}` : ""}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Block
       type="trigger"
@@ -102,6 +130,10 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       result={result}
       errorMessage={errorMessage}
       hideConnectors={hideConnectors}
+      onRun={onRun}
+      onPause={onPause}
+      onRerun={onRerun}
+      customResultRenderer={renderTriggerData}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center">

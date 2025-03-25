@@ -20,43 +20,77 @@ interface ExtractionBlockProps {
   hideConnectors?: boolean;
 }
 
-export default function ExtractionBlock({
-  title,
-  description = "Extract structured data from content",
-  state = "idle",
-  size,
-  isInDiagram,
-  isInNotebook,
-  runningAction,
-  result,
-  isCompact = false,
-  errorMessage,
-  onRun,
-  onPause,
-  onRerun,
-  hideConnectors,
-}: ExtractionBlockProps) {
+const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
+  // Custom renderer for extraction data
+  const renderExtractionData = (result: BlockResult) => {
+    if (!result || !result.data) return null;
+
+    // Filter out any non-display fields
+    const filteredData = Object.entries(result.data).filter(
+      ([key]) =>
+        !key.startsWith("_") &&
+        key !== "details" &&
+        key !== "error" &&
+        key !== "errorMessages"
+    );
+
+    const totalFields = filteredData.length;
+    // Get top 3 fields
+    const topFields = filteredData.slice(0, 3);
+
+    return (
+      <div className="mt-2">
+        <div className="text-xs text-gray-500 mb-1 flex items-center">
+          <DocumentTextIcon className="h-4 w-4 mr-1" />
+          {totalFields} fields extracted
+        </div>
+
+        <div className="space-y-1">
+          {topFields.map(([key, value]) => (
+            <div key={key} className="flex justify-between text-xs">
+              <span className="font-medium text-gray-700">{key}:</span>
+              <span className="text-gray-900 truncate max-w-[60%] text-right">
+                {typeof value === "object"
+                  ? JSON.stringify(value)
+                  : String(value)}
+              </span>
+            </div>
+          ))}
+
+          {totalFields > 3 && (
+            <div className="text-xs text-gray-500 italic">
+              + {totalFields - 3} more fields
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Block
       type="extraction"
-      title={title}
-      description={description}
-      state={state}
+      title={props.title}
+      description={props.description || ""}
+      state={props.state}
       inputs={1}
       outputs={1}
       color={BLOCK_COLORS.extraction}
       icon={DocumentTextIcon}
-      size={size}
-      isInDiagram={isInDiagram}
-      isInNotebook={isInNotebook}
-      isCompact={isCompact}
-      runningAction={runningAction}
-      result={result}
-      errorMessage={errorMessage}
-      onRun={onRun}
-      onPause={onPause}
-      onRerun={onRerun}
-      hideConnectors={hideConnectors}
+      size={props.size}
+      isInDiagram={props.isInDiagram}
+      isInNotebook={props.isInNotebook}
+      isCompact={props.isCompact}
+      runningAction={props.runningAction}
+      result={props.result}
+      errorMessage={props.errorMessage}
+      onRun={props.onRun}
+      onPause={props.onPause}
+      onRerun={props.onRerun}
+      hideConnectors={props.hideConnectors}
+      customResultRenderer={renderExtractionData}
     />
   );
-}
+};
+
+export default ExtractionBlock;
