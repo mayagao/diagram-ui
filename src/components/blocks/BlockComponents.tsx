@@ -209,7 +209,7 @@ export function NotebookBlock({
     <div
       className={`
         w-full 
-        ${isCompact ? "h-[52px]" : "min-h-[80px]"}
+        ${isCompact ? "min-h-[52px]" : "min-h-[80px]"}
         p-3
         bg-white 
         border 
@@ -219,11 +219,8 @@ export function NotebookBlock({
         relative
       `}
     >
-      <div
-        className={`flex ${
-          isCompact ? "flex-row items-center" : "flex-col"
-        } gap-2`}
-      >
+      <div className={`flex flex-col gap-2`}>
+        {/* Header with icon and title always in one row */}
         <div className="flex items-center gap-2">
           {Icon && (
             <div
@@ -239,15 +236,15 @@ export function NotebookBlock({
           )}
           <h3
             className={`font-medium text-gray-800 ${
-              isCompact ? "text-sm truncate" : ""
+              isCompact ? "text-sm" : ""
             }`}
           >
             {title}
           </h3>
         </div>
 
-        {/* Children (content) with proper spacing */}
-        <div className={`${isCompact ? "flex-1" : ""}`}>{children}</div>
+        {/* Content below the header - even in compact mode */}
+        <div className="w-full">{children}</div>
       </div>
     </div>
   );

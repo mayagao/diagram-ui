@@ -151,7 +151,7 @@ function NotebookView({
       // Non-compact mode - show all content stacked
       return (
         <>
-          <p className="text-sm text-gray-600 ml-8">{description}</p>
+          <p className="text-sm text-gray-600">{description}</p>
           {isRunning && runningAction && (
             <RunningBlock action={runningAction} />
           )}
