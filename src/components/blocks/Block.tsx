@@ -46,7 +46,7 @@ const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
     case "paused":
       return "border-1 border-gray-300 bg-white";
     case "finished":
-      return "border-1 border-gray-200 bg-gray-50";
+      return "border-1 border-gray-200 bg-white";
     case "error":
       return "border-1 border-red-200 bg-red-50";
     default:
@@ -393,7 +393,7 @@ function DiagramView({
   function renderDefaultContent() {
     if (state === "paused" && runningAction) {
       return (
-        <div className="px-3 text-xs border-t py-1 border-gray-100 bg-gray-50">
+        <div className="px-2 text-xs border-t py-1 border-gray-100 bg-gray-50">
           <span className="truncate">{runningAction}</span>
         </div>
       );
@@ -411,7 +411,9 @@ function DiagramView({
       // Use custom renderer if provided
       if (customResultRenderer) {
         return (
-          <div className="p-2 text-xs">{customResultRenderer(result)}</div>
+          <div className="p-2 text-xs bg-gray-50">
+            {customResultRenderer(result)}
+          </div>
         );
       }
 

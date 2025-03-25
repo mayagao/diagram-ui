@@ -22,10 +22,27 @@ interface ExtractionBlockProps {
 
 const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
   // Custom renderer for extraction data
-  const renderExtractionData = (result: BlockResult) => {
+  const renderExtractionData = (
+    result: BlockResult,
+    isCompact: boolean = false
+  ) => {
     if (!result || !result.data) return null;
 
-    // Filter out any non-display fields
+    // For compact mode, just show the document name or a summary
+    if (isCompact) {
+      // Get the document name or filename
+      const documentName =
+        result.data.filename ||
+        result.data.documentName ||
+        result.summary?.split(" ").pop() ||
+        "Document extracted";
+
+      return (
+        <div className="text-xs text-gray-700 truncate">{documentName}</div>
+      );
+    }
+
+    // Regular detailed view code for non-compact mode
     const filteredData = Object.entries(result.data).filter(
       ([key]) =>
         !key.startsWith("_") &&
@@ -35,33 +52,25 @@ const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
     );
 
     const totalFields = filteredData.length;
-    // Get top 3 fields
     const topFields = filteredData.slice(0, 3);
 
     return (
-      <div className="mt-2">
-        <div className="text-xs text-gray-500 mb-1 flex items-center">
-          <DocumentTextIcon className="h-4 w-4 mr-1" />
+      <div className="">
+        <div className="text-xs text-gray-500 mb-1">
           {totalFields} fields extracted
         </div>
 
         <div className="space-y-1">
           {topFields.map(([key, value]) => (
-            <div key={key} className="flex justify-between text-xs">
-              <span className="font-medium text-gray-700">{key}:</span>
-              <span className="text-gray-900 truncate max-w-[60%] text-right">
+            <div key={key} className="flex justify-between text-xs mt-1">
+              <span className="font-medium text-gray-800">{key}:</span>
+              <span className="text-gray-600 truncate max-w-[60%] text-right">
                 {typeof value === "object"
                   ? JSON.stringify(value)
                   : String(value)}
               </span>
             </div>
           ))}
-
-          {totalFields > 3 && (
-            <div className="text-xs text-gray-500 italic">
-              + {totalFields - 3} more fields
-            </div>
-          )}
         </div>
       </div>
     );
@@ -88,7 +97,9 @@ const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
       onPause={props.onPause}
       onRerun={props.onRerun}
       hideConnectors={props.hideConnectors}
-      customResultRenderer={renderExtractionData}
+      customResultRenderer={(result) =>
+        renderExtractionData(result, props.isCompact)
+      }
     />
   );
 };

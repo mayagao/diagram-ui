@@ -91,19 +91,32 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
   };
 
   // Custom renderer for trigger data
-  const renderTriggerData = (result: BlockResult) => {
+  const renderTriggerData = (
+    result: BlockResult,
+    isCompact: boolean = false
+  ) => {
     if (!result || !result.data) return null;
 
     const { filename, documentType, pageCount } = result.data;
 
-    return (
-      <div className="mt-2 text-xs">
-        <div className="font-medium text-gray-800 flex items-center">
-          <DocumentIcon className="h-4 w-4 mr-1 text-gray-500" />
+    // For compact mode, just show the filename
+    if (isCompact) {
+      return (
+        <div className="text-xs text-gray-700 truncate">
           {filename || "Untitled Document"}
         </div>
-        <div className="text-gray-600 flex items-center justify-between mt-1">
+      );
+    }
+
+    // Regular detailed view
+    return (
+      <div className="text-xs">
+        <div className="font-medium text-gray-800">
+          {filename || "Untitled Document"}
+        </div>
+        <div className="text-gray-600 flex items-center ">
           <span>{documentType || "Unknown Type"}</span>
+          <span className="px-1 text-gray-200">•</span>
           <span>
             {pageCount ? `${pageCount} page${pageCount !== 1 ? "s" : ""}` : ""}
           </span>
@@ -133,7 +146,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       onRun={onRun}
       onPause={onPause}
       onRerun={onRerun}
-      customResultRenderer={renderTriggerData}
+      customResultRenderer={(result) => renderTriggerData(result, isCompact)}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center">

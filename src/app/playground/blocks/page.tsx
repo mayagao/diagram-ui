@@ -353,14 +353,6 @@ export default function BlocksDemo() {
             </div>
           </div>
 
-          {/* Condition Blocks Section */}
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Condition Blocks</h2>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(ConditionBlock, "condition")}
-            </div>
-          </div>
-
           {/* Action Blocks Section */}
           <div>
             <h2 className="text-2xl font-semibold mb-4">Action Blocks</h2>

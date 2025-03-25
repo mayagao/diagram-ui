@@ -2,62 +2,144 @@ import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
 import { BlockProps, BlockResult } from "@/types/blocks";
 import {
-  CheckIcon,
-  ExclamationCircleIcon,
   BeakerIcon,
+  QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 
-const ConditionBlock: React.FC<BlockProps> = (props) => {
-  // Custom renderer for rules
-  const renderRulesData = (result: BlockResult) => {
-    if (!result || !result.data || !result.data.details) return null;
+// Fix the type errors by using proper typings
+interface ConditionBlockProps {
+  title: string;
+  description?: string;
+  state?: "idle" | "running" | "paused" | "finished" | "error";
+  isCompact?: boolean;
+  isInDiagram?: boolean;
+  isInNotebook?: boolean;
+  runningAction?: string;
+  result?: BlockResult;
+  errorMessage?: string;
+  hideConnectors?: boolean;
+  onRun?: () => void;
+  onPause?: () => void;
+  onRerun?: () => void;
+  size?: "compact" | "default";
+}
 
-    let details;
+const ConditionBlock: React.FC<ConditionBlockProps> = (props) => {
+  // Custom renderer for rules data
+  const renderRulesData = (result: BlockResult, isCompact: boolean = false) => {
+    if (!result || !result.data) return null;
+
+    // For compact mode, just show the summary of passed/failed rules
+    if (isCompact) {
+      // Use existing count data if available with proper type handling
+      const passedRules =
+        typeof result.data.passedRules === "number"
+          ? result.data.passedRules
+          : 0;
+      const failedRules =
+        typeof result.data.failedRules === "number"
+          ? result.data.failedRules
+          : 0;
+      const pendingRules =
+        typeof result.data.pendingRules === "number"
+          ? result.data.pendingRules
+          : 0;
+      const totalRules =
+        typeof result.data.totalRules === "number"
+          ? result.data.totalRules
+          : passedRules + failedRules + pendingRules;
+
+      return (
+        <div className="text-xs text-gray-700 truncate">
+          {totalRules} rules ({passedRules} passed, {failedRules} failed
+          {pendingRules > 0 ? `, ${pendingRules} pending` : ""})
+        </div>
+      );
+    }
+
+    // Parse the rule details correctly
+    let details = [];
     try {
-      // Handle string JSON if needed
-      details =
-        typeof result.data.details === "string"
-          ? JSON.parse(result.data.details)
-          : result.data.details;
-    } catch (_e) {
+      // Check if details is an array of strings that need parsing
+      if (Array.isArray(result.data.details)) {
+        details = result.data.details.map((item) => {
+          if (typeof item === "string" && item.startsWith("{")) {
+            try {
+              return JSON.parse(item);
+            } catch {
+              // If parsing fails, format as is
+              return { rule: "Error", status: "unknown", message: item };
+            }
+          }
+          return item;
+        });
+      }
+      // If details is a string, try to parse it
+      else if (typeof result.data.details === "string") {
+        try {
+          const parsed = JSON.parse(result.data.details);
+          details = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          // Try parsing as individual JSON objects
+          details = [];
+        }
+      } else if (result.data.details) {
+        details = result.data.details;
+      }
+    } catch {
       details = [];
     }
 
-    // Ensure details is an array and limit to first 3
+    // If no details, create a simple view based on rule numbers
+    if (!details.length && result.data.totalRules) {
+      const rules = [];
+      const totalRulesNum =
+        typeof result.data.totalRules === "number"
+          ? result.data.totalRules
+          : parseInt(String(result.data.totalRules), 10) || 3;
+
+      for (let i = 0; i < Math.min(3, totalRulesNum); i++) {
+        rules.push({
+          rule: `Rule ${i + 1}`,
+          status: "unknown",
+          message: "No description",
+        });
+      }
+      details = rules;
+    }
+
     const rulesDetails = Array.isArray(details) ? details.slice(0, 3) : [];
+    const totalRules =
+      typeof result.data.totalRules === "number"
+        ? result.data.totalRules
+        : details.length || 0;
 
     return (
-      <div className="space-y-2 mt-2">
+      <div className="space-y-3 ">
         {rulesDetails.map((rule, index) => (
-          <div key={index} className="flex items-center gap-2 text-xs">
-            <div
-              className={`w-4 h-4 flex-shrink-0 rounded-full ${
-                rule.status === "passed"
-                  ? "bg-green-100 text-green-600"
+          <div key={index} className="flex items-start gap-1 text-xs mb-1">
+            <div className="flex-shrink-0 mt-0.5">
+              <div className="text-gray-600">
+                {rule.status === "passed"
+                  ? "✓"
                   : rule.status === "failed"
-                  ? "bg-red-100 text-red-600"
-                  : "bg-gray-100 text-gray-600"
-              } flex items-center justify-center`}
-            >
-              {rule.status === "passed" ? (
-                <CheckIcon className="h-3 w-3" />
-              ) : rule.status === "failed" ? (
-                <ExclamationIcon className="h-3 w-3" />
-              ) : (
-                "?"
-              )}
+                  ? "✗"
+                  : "?"}
+              </div>
             </div>
-            <span className="font-medium">
-              {rule.rule || rule.name || `Rule ${index + 1}`}:
-            </span>
-            <span className="text-gray-600 truncate">
+            <div className="truncate text-gray-600 ">
               {rule.message || rule.description || "No description"}
-            </span>
+
+              {/* <div className="font-medium truncate">
+                {rule.rule || rule.name || `Rule ${index + 1}`}
+              </div> */}
+            </div>
           </div>
         ))}
-        {Array.isArray(details) && details.length > 3 && (
-          <div className="text-xs text-gray-500 italic">
-            + {details.length - 3} more rules
+
+        {totalRules > 3 && (
+          <div className="text-xs text-gray-500 italic mt-1">
+            + {totalRules - 3} more rules
           </div>
         )}
       </div>
@@ -85,7 +167,9 @@ const ConditionBlock: React.FC<BlockProps> = (props) => {
       onPause={props.onPause}
       onRerun={props.onRerun}
       hideConnectors={props.hideConnectors}
-      customResultRenderer={renderRulesData}
+      customResultRenderer={(result) =>
+        renderRulesData(result, props.isCompact)
+      }
     />
   );
 };

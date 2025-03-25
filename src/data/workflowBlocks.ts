@@ -220,33 +220,186 @@ export const workflowBlocks: Record<string, BlockData[]> = {
         },
       ],
       actions: [
-        "Establishing connection to policy management system",
-        "Authenticating credentials",
-        "Accessing policy records",
-        "Locating matching policy by number",
-        "Updating carrier information",
-        "Updating effective dates",
-        "Updating coverage limits",
-        "Updating premium information",
-        "Committing changes to database",
-        "Generating audit trail entry",
+        "Navigating to policy system",
+        "Logging in with credentials",
+        "Searching for policy number",
+        "Clicking Oracle Policies and continue",
+        "Clicking search",
+        "Selecting policy from search results",
+        "Entering updated information",
+        "Clicking submit",
+        "Confirming changes",
+        "Generating confirmation report",
       ],
       result: {
         summary: "Policy WC-123456789 successfully updated in system",
         data: {
           policyId: "WC-123456789",
           updateStatus: "Success",
-          updatedFields: [
-            "Carrier Name",
-            "Effective Date",
-            "Expiration Date",
-            "Premium",
-            "Coverage Type",
-            "Endorsements",
+          actionSteps: [
+            {
+              name: "Navigate to policy portal",
+              url: "https://forms.fillout.com/t/42Mu9wkXsus",
+              completed: true,
+            },
+            {
+              name: "Log in to system",
+              credentials: "jamie.cuffe@pas.com",
+              completed: true,
+            },
+            {
+              name: "Search for policy",
+              query: "@Application.Advisor_Entity",
+              completed: true,
+            },
+            {
+              name: "Update policy details",
+              fields: ["Premium", "Coverage Type", "Endorsements"],
+              completed: true,
+            },
+            {
+              name: "Submit changes",
+              confirmation: "TRX-20240311-78954",
+              completed: true,
+            },
           ],
           systemResponse: "Policy updated successfully",
           transactionId: "TRX-20240311-78954",
           timestampUTC: "2024-03-11T14:27:33Z",
+        },
+      },
+    },
+    {
+      title: "Send Policy Notification",
+      description:
+        "Sends notification email to policyholder with updated information",
+      inputs: [
+        {
+          name: "policyData",
+          type: "object",
+          description: "Updated policy information",
+        },
+      ],
+      outputs: [
+        {
+          name: "notificationResult",
+          type: "object",
+          description: "Result of notification delivery",
+        },
+      ],
+      actions: [
+        "Generating email template",
+        "Adding policy information",
+        "Attaching policy summary PDF",
+        "Adding agent contact details",
+        "Sending email to policyholder",
+        "Recording delivery status",
+        "Logging notification in CRM",
+      ],
+      result: {
+        summary: "Policy update notification sent to policyholder",
+        data: {
+          recipient: "info@chelseaflorist.com",
+          subject: "Your Workers Comp Policy WC-123456789 Has Been Updated",
+          sentTimestamp: "2024-03-11T15:32:18Z",
+          deliveryStatus: "Delivered",
+          openedTimestamp: "2024-03-11T16:45:22Z",
+          actionSteps: [
+            {
+              name: "Generate email content",
+              template: "policy_update_notification.html",
+              completed: true,
+            },
+            {
+              name: "Prepare attachments",
+              files: ["Chelsea_Florist_Policy_Summary.pdf"],
+              completed: true,
+            },
+            {
+              name: "Send notification",
+              channel: "email",
+              status: "successful",
+              completed: true,
+            },
+            {
+              name: "Record in customer activity log",
+              system: "CRM",
+              recordId: "ACT-43981",
+              completed: true,
+            },
+          ],
+          messageId: "msg_2342678@notifications.insure.com",
+          error: null,
+        },
+      },
+    },
+    {
+      title: "Process Policy Update",
+      description:
+        "Processes the policy update through multiple connected systems",
+      inputs: [
+        {
+          name: "policyUpdate",
+          type: "object",
+          description: "Policy update request with details",
+        },
+      ],
+      outputs: [
+        {
+          name: "processingResult",
+          type: "object",
+          description: "Results from processing pipeline",
+        },
+      ],
+      actions: [
+        "Accessing policy management system",
+        "Validating update request",
+        "Applying policy changes",
+        "Recalculating premiums",
+        "Updating billing information",
+        "Generating revised documents",
+        "Notifying stakeholders",
+        "Scheduling follow-up activities",
+      ],
+      result: {
+        summary: "Successfully processed Chelsea Florist policy update",
+        data: {
+          policyNumber: "WC-123456789",
+          updateType: "Policy Modification",
+          effectiveDate: "2024-04-01",
+          actionSteps: [
+            {
+              name: "Validate request",
+              authority: "Underwriter #42",
+              status: "Approved",
+              completed: true,
+            },
+            {
+              name: "Update policy record",
+              system: "PolicyCore",
+              changeId: "CHG-28754",
+              completed: true,
+            },
+            {
+              name: "Update billing system",
+              system: "BillingCenter",
+              transactionId: "BIL-76542",
+              completed: true,
+            },
+            {
+              name: "Generate endorsement document",
+              documentId: "END-23451",
+              completed: true,
+            },
+            {
+              name: "Notify broker",
+              recipientId: "BRK-3421",
+              completed: true,
+            },
+          ],
+          processingTime: "4.3 minutes",
+          completedTimestamp: "2024-03-11T10:45:22Z",
+          status: "Complete",
         },
       },
     },
