@@ -113,34 +113,43 @@ const ConditionBlock: React.FC<ConditionBlockProps> = (props) => {
         ? result.data.totalRules
         : details.length || 0;
 
-    return (
-      <div className="space-y-3 ">
-        {rulesDetails.map((rule, index) => (
-          <div key={index} className="flex items-start gap-1 text-xs mb-1">
-            <div className="flex-shrink-0 mt-0.5">
-              <div className="text-gray-600">
-                {rule.status === "passed"
-                  ? "✓"
-                  : rule.status === "failed"
-                  ? "✗"
-                  : "?"}
-              </div>
-            </div>
-            <div className="truncate text-gray-600 ">
-              {rule.message || rule.description || "No description"}
+    // Count rules by status
+    const passedRules = rulesDetails.filter(
+      (rule) => rule.status === "passed"
+    ).length;
+    const failedRules = rulesDetails.filter(
+      (rule) => rule.status === "failed"
+    ).length;
+    const pendingRules = rulesDetails.filter(
+      (rule) => rule.status === "pending" || rule.status === "unknown"
+    ).length;
 
-              {/* <div className="font-medium truncate">
-                {rule.rule || rule.name || `Rule ${index + 1}`}
-              </div> */}
+    return (
+      <div className="space-y-2">
+        {/* Rules summary */}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="">{passedRules} passed</span>
+          {failedRules > 0 && <span className="">{failedRules} failed</span>}
+          {pendingRules > 0 && <span className="">{pendingRules} pending</span>}
+        </div>
+
+        {/* Rules details */}
+        {rulesDetails.map((rule, index) => (
+          <div key={index} className="flex items-start gap-2 text-xs mb-0.5">
+            <div className="flex-shrink-0 text-sm -mt-0.5">
+              {rule.status === "passed" ? (
+                <div className="text-gray-600">✓</div>
+              ) : rule.status === "failed" ? (
+                <div className="text-gray-600">✗</div>
+              ) : (
+                <div className="text-gray-600">?</div>
+              )}
+            </div>
+            <div className="text-gray-600 flex-1 truncate">
+              {rule.message || rule.description || "No description"}
             </div>
           </div>
         ))}
-
-        {totalRules > 3 && (
-          <div className="text-xs text-gray-500 italic mt-1">
-            + {totalRules - 3} more rules
-          </div>
-        )}
       </div>
     );
   };

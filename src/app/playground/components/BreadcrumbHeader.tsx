@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -10,19 +10,43 @@ interface NavItem {
   description: string;
 }
 
+interface WorkflowItem {
+  title: string;
+  description: string;
+}
+
 interface BreadcrumbHeaderProps {
   currentPage: string;
   isCompact: boolean;
   setIsCompact: (value: boolean) => void;
-  // Make navItems optional since we'll provide defaults
+  currentWorkflow?: string;
+  workflows?: WorkflowItem[];
   navItems?: NavItem[];
+  onWorkflowSelect?: (workflowTitle: string) => void;
 }
+
+type DropdownType = "nav" | "workflow" | null;
 
 export default function BreadcrumbHeader({
   currentPage,
   isCompact,
   setIsCompact,
-  // Set default navItems
+  currentWorkflow,
+  workflows = [
+    {
+      title: "Notice of Cancellation",
+      description:
+        "Handle customer cancellation notices and payment follow-ups",
+    },
+    {
+      title: "Policy Endorsement",
+      description: "Process policy endorsement requests and updates",
+    },
+    {
+      title: "Claims Processing",
+      description: "Automated claims processing and validation workflow",
+    },
+  ],
   navItems = [
     {
       title: "Diagram workflow",
@@ -46,14 +70,36 @@ export default function BreadcrumbHeader({
       description: "Interactive notebook with blocks in notebook mode",
     },
   ],
+  onWorkflowSelect,
 }: BreadcrumbHeaderProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleDropdownToggle = (type: DropdownType) => {
+    setOpenDropdown(openDropdown === type ? null : type);
+  };
 
   return (
     <div className="sticky top-0 bg-white border-b border-gray-200 z-10 px-8 py-2">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" ref={dropdownRef}>
             <Link
               href="/playground"
               className="text-gray-500 text-sm font-semibold hover:text-gray-800 transition-colors"
@@ -67,18 +113,19 @@ export default function BreadcrumbHeader({
             <div className="relative">
               <Button
                 variant="ghost"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => handleDropdownToggle("nav")}
                 className="flex items-center gap-2 px-2 font-semibold"
               >
                 <span>{currentPage}</span>
               </Button>
 
-              {isDropdownOpen && (
+              {openDropdown === "nav" && (
                 <div className="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
                   {navItems.map((item) => (
                     <Link
                       key={item.title}
                       href={item.href}
+                      onClick={() => setOpenDropdown(null)}
                       className={`block px-4 py-2 hover:bg-gray-50 ${
                         item.title === currentPage ? "bg-blue-50" : ""
                       }`}
@@ -101,9 +148,60 @@ export default function BreadcrumbHeader({
                 </div>
               )}
             </div>
+
+            {/* Workflow selection dropdown */}
+            {currentWorkflow && (
+              <>
+                <span className="text-gray-400 ml-2">/</span>
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleDropdownToggle("workflow")}
+                    className="flex items-center gap-2 px-2 font-semibold"
+                  >
+                    <span>{currentWorkflow}</span>
+                  </Button>
+
+                  {openDropdown === "workflow" && (
+                    <div className="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                      {workflows.map((workflow) => (
+                        <button
+                          key={workflow.title}
+                          className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
+                            workflow.title === currentWorkflow
+                              ? "bg-blue-50"
+                              : ""
+                          }`}
+                          onClick={() => {
+                            onWorkflowSelect?.(workflow.title);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          <div className="flex items-start text-sm justify-between">
+                            <div>
+                              <div className="font-medium">
+                                {workflow.title}
+                              </div>
+                              <div className="text-sm text-gray-500 line-clamp-1">
+                                {workflow.description}
+                              </div>
+                            </div>
+                            {workflow.title === currentWorkflow && (
+                              <span className="text-gray-500 text-xs mt-1">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Mode Toggles Section - Only compact toggle remains */}
+          {/* Mode Toggles Section */}
           <div className="flex items-center gap-4">
             {/* Compact/Regular Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">

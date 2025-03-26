@@ -2,10 +2,30 @@ export interface BlockData {
   title: string;
   description: string;
   inputs?: {
-    name: string;
-    type: string;
-    description: string;
-  }[];
+    [key: string]: {
+      type: string;
+      description: string;
+      default?: string | number | boolean | string[] | Record<string, unknown>;
+      language?: string;
+      properties?: {
+        [key: string]: {
+          type: string;
+          description: string;
+          default?: string | number | boolean | string[];
+        };
+      };
+      items?: Array<{
+        name?: string;
+        type: string;
+        description?: string;
+        formula?: string;
+        prompt?: string;
+        url?: string;
+        target?: string;
+        value?: string;
+      }>;
+    };
+  };
   outputs?: {
     name: string;
     type: string;
@@ -21,9 +41,33 @@ export interface BlockData {
 export const workflowBlocks: Record<string, BlockData[]> = {
   trigger: [
     {
-      title: "Document Upload",
+      title: "Monitor Email Inbox",
       description:
-        "Triggers when an insurance document is uploaded to the system",
+        "Receive policy endorsement requests from endorse-address@foundation.foundation.email and extract attached PDF documents",
+      inputs: {
+        email: {
+          type: "string",
+          description: "Email address to monitor",
+          default: "endorse-address@foundation.foundation.email",
+        },
+        api: {
+          type: "code",
+          description: "API configuration for programmatic triggers",
+          language: "bash",
+          default: `curl --location --request POST "https://api.tryfoundation.ai/v1/task"
+-F "files=@/Users/path-to-file/example-email.pdf; filename=example-email.pdf"
+-F "metadata=' {
+    "workflow_id": "6229835b-f61e-4c81-9e9f-40c4ef38b5fd",
+    "task_id": "Some unique task id",
+    "files": [
+        {
+            "model": "Email",
+            "name": "example-email.pdf"
+        }
+    ]
+}'"`,
+        },
+      },
       outputs: [
         {
           name: "document",
@@ -55,15 +99,34 @@ export const workflowBlocks: Record<string, BlockData[]> = {
   ],
   extraction: [
     {
-      title: "Policy Document Extractor",
-      description: "Extracts key information from policy documents",
-      inputs: [
-        {
-          name: "documents",
-          type: "array",
-          description: "Insurance policy documents",
+      title: "Parse Address Change",
+      description:
+        "Extract insured name, old address, and new address from the endorsement request email. Identify if this is an address change, additional insured, or other type of endorsement",
+      inputs: {
+        fields: {
+          type: "object",
+          description: "Fields to extract from the document",
+          properties: {
+            Insured_Name: {
+              type: "string",
+              description: "Name of the insured entity",
+            },
+            New_Address_City: {
+              type: "string",
+              description: "New city for address change",
+            },
+            Old_Address: {
+              type: "string",
+              description: "Previous address",
+            },
+            Endorsement_type: {
+              type: "string",
+              description:
+                "Options are additional_insured, address_change or other",
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "policyData",
@@ -115,15 +178,39 @@ export const workflowBlocks: Record<string, BlockData[]> = {
   ],
   rules: [
     {
-      title: "Policy Validation Rules",
-      description: "Verifies policy data against business rules",
-      inputs: [
-        {
-          name: "policyData",
-          type: "object",
-          description: "Extracted policy information",
+      title: "Check Endorsement Rules",
+      description:
+        "Verify if the address change is valid by checking: 1) effective date is before 2025, 2) new address is different from old address, 3) address format is valid, 4) requires underwriter approval if over $500k",
+      inputs: {
+        rules: {
+          type: "array",
+          description: "List of rules to validate against",
+          items: [
+            {
+              name: "Check date",
+              type: "condition",
+              description:
+                "If the effective date of change listed is before 2025 pass otherwise fail",
+            },
+            {
+              name: "Formula rule 2",
+              type: "formula",
+              formula: "=Date( @Email.Insured_Name ) > 2025",
+            },
+            {
+              name: "Prompt rule 3",
+              type: "prompt",
+              prompt:
+                "@Email.New_Address_City is different from @Email.Old_Address",
+            },
+            {
+              name: "User Approval Rule 4",
+              type: "user",
+              description: "Requires manual user approval",
+            },
+          ],
         },
-      ],
+      },
       outputs: [
         {
           name: "validationResults",
@@ -202,16 +289,47 @@ export const workflowBlocks: Record<string, BlockData[]> = {
   ],
   action: [
     {
-      title: "Update Policy System",
+      title: "Submit to Policy System",
       description:
-        "Updates the external policy management system with validated data",
-      inputs: [
-        {
-          name: "validatedPolicy",
-          type: "object",
-          description: "Validated policy information",
+        "Log into forms.fillout.com, navigate to the endorsement form, enter the extracted address details, and submit the changes for processing",
+      inputs: {
+        steps: {
+          type: "array",
+          description: "Sequence of steps to execute",
+          items: [
+            {
+              type: "navigate",
+              url: "https://forms.fillout.com/t/JppEmAGZYdy",
+              description: "Navigate to policy system",
+            },
+            {
+              type: "click",
+              target: "log in",
+              description: "Click login button",
+            },
+            {
+              type: "type",
+              value: "username jamie",
+              description: "Enter username",
+            },
+            {
+              type: "type",
+              value: "password password",
+              description: "Enter password",
+            },
+            {
+              type: "click",
+              target: "Go button",
+              description: "Click Go button",
+            },
+            {
+              type: "click",
+              target: "submit",
+              description: "Submit form",
+            },
+          ],
         },
-      ],
+      },
       outputs: [
         {
           name: "updateResult",
@@ -270,16 +388,32 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Send Policy Notification",
+      title: "Send Email Notification",
       description:
-        "Sends notification email to policyholder with updated information",
-      inputs: [
-        {
-          name: "policyData",
+        "Generate and send confirmation email to the policyholder with details of the address change and any additional requirements or next steps",
+      inputs: {
+        notification: {
           type: "object",
-          description: "Updated policy information",
+          description: "Email notification configuration",
+          properties: {
+            recipient: {
+              type: "string",
+              description: "Email address of the policyholder",
+              default: "info@chelseaflorist.com",
+            },
+            template: {
+              type: "string",
+              description: "Email template to use",
+              default: "policy_update_notification.html",
+            },
+            attachments: {
+              type: "array",
+              description: "Files to attach to the email",
+              default: ["Chelsea_Florist_Policy_Summary.pdf"],
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "notificationResult",
@@ -334,16 +468,29 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Process Policy Update",
+      title: "Process Policy Changes",
       description:
-        "Processes the policy update through multiple connected systems",
-      inputs: [
-        {
-          name: "policyUpdate",
+        "Update policy records in core system, recalculate premiums if needed, generate endorsement documents, and notify broker of changes",
+      inputs: {
+        policyUpdate: {
           type: "object",
-          description: "Policy update request with details",
+          description: "Policy update configuration",
+          properties: {
+            policyNumber: {
+              type: "string",
+              description: "Policy number to update",
+            },
+            updateType: {
+              type: "string",
+              description: "Type of policy modification",
+            },
+            effectiveDate: {
+              type: "string",
+              description: "When changes take effect",
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "processingResult",
@@ -404,15 +551,27 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Generate Validation Report",
-      description: "Creates detailed validation report of policy data quality",
-      inputs: [
-        {
-          name: "validationResults",
+      title: "Create Rules Report",
+      description:
+        "Generate a detailed PDF report showing which business rules passed or failed, with specific reasons and recommendations for any failures",
+      inputs: {
+        report: {
           type: "object",
-          description: "Results from policy validation process",
+          description: "Report configuration",
+          properties: {
+            format: {
+              type: "string",
+              description: "Report format",
+              default: "PDF",
+            },
+            includeDetails: {
+              type: "boolean",
+              description: "Include detailed rule evaluations",
+              default: true,
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "report",
@@ -450,15 +609,32 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Export Rule Applications",
-      description: "Exports rule application data to CSV for analysis",
-      inputs: [
-        {
-          name: "ruleResults",
-          type: "array",
-          description: "Collection of rule application results",
+      title: "Export Rules Data",
+      description:
+        "Create a CSV file containing all rule evaluations from March 1-11, including pass/fail status, error messages, and validation scores",
+      inputs: {
+        export: {
+          type: "object",
+          description: "Export configuration",
+          properties: {
+            startDate: {
+              type: "string",
+              description: "Start date for export range",
+              default: "2024-03-01",
+            },
+            endDate: {
+              type: "string",
+              description: "End date for export range",
+              default: "2024-03-11",
+            },
+            format: {
+              type: "string",
+              description: "Export format",
+              default: "CSV",
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "exportFile",
@@ -500,15 +676,32 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Generate Summary Report",
-      description: "Creates management summary of processed policies",
-      inputs: [
-        {
-          name: "policyData",
-          type: "array",
-          description: "Collection of processed policy data",
+      title: "Generate Status Report",
+      description:
+        "Create a management summary showing policy processing metrics, including success rate, processing time, and common issues found",
+      inputs: {
+        summary: {
+          type: "object",
+          description: "Summary report configuration",
+          properties: {
+            metrics: {
+              type: "array",
+              description: "Metrics to include in report",
+              default: [
+                "Success Rate",
+                "Processing Time",
+                "Common Issues",
+                "Carrier Performance",
+              ],
+            },
+            format: {
+              type: "string",
+              description: "Report format",
+              default: "PDF",
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "summaryReport",
@@ -555,16 +748,27 @@ export const workflowBlocks: Record<string, BlockData[]> = {
   ],
   condition: [
     {
-      title: "Policy Amount Evaluation",
+      title: "Route by Amount",
       description:
-        "Determines processing path based on policy amount and risk evaluation",
-      inputs: [
-        {
-          name: "policyData",
+        "Check if policy amount exceeds $500,000 or risk score is above 75 - if yes, route to underwriter for manual review, otherwise proceed with automatic processing",
+      inputs: {
+        thresholds: {
           type: "object",
-          description: "Policy information with premium and coverage details",
+          description: "Threshold values for routing decisions",
+          properties: {
+            maxAutoApprovalAmount: {
+              type: "number",
+              description: "Maximum amount for automatic approval",
+              default: 500000,
+            },
+            riskScoreThreshold: {
+              type: "number",
+              description: "Risk score threshold for manual review",
+              default: 75,
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "processingPath",
@@ -593,6 +797,27 @@ export const workflowBlocks: Record<string, BlockData[]> = {
           businessType: "Retail - Florist",
           employeeCount: 3,
           processingPath: "manual-underwriter-review",
+          passedRules: 2,
+          failedRules: 1,
+          totalRules: 3,
+          details: [
+            {
+              rule: "Premium Range Check",
+              status: "passed",
+              message: "Premium amount $6,000 is within acceptable range",
+            },
+            {
+              rule: "Business Type Risk",
+              status: "passed",
+              message: "Retail - Florist is a low-risk business type",
+            },
+            {
+              rule: "Coverage Amount Limit",
+              status: "failed",
+              message:
+                "Coverage amount $1,000,000 exceeds maximum limit of $500,000",
+            },
+          ],
           reason:
             "Insurance amount $1,000,000 exceeds automatic approval threshold of $500,000",
           error: "Formula = 1000000 <= 500000 evaluated to Failed",
@@ -602,15 +827,35 @@ export const workflowBlocks: Record<string, BlockData[]> = {
   ],
   generation: [
     {
-      title: "Policy Summary Generator",
-      description: "Creates formatted policy summary documents",
-      inputs: [
-        {
-          name: "policyData",
+      title: "Create Change Summary",
+      description:
+        "Generate a PDF document summarizing all policy changes made, including old vs new values, effective dates, and approval details",
+      inputs: {
+        template: {
           type: "object",
-          description: "Validated policy information",
+          description: "Document template configuration",
+          properties: {
+            sections: {
+              type: "array",
+              description: "Sections to include in summary",
+              default: [
+                "Policy Information",
+                "Insured Details",
+                "Coverage Summary",
+                "Employee Classification",
+                "Endorsements",
+                "Premium Breakdown",
+                "Contact Information",
+              ],
+            },
+            format: {
+              type: "string",
+              description: "Output format",
+              default: "PDF",
+            },
+          },
         },
-      ],
+      },
       outputs: [
         {
           name: "summaryDocument",
