@@ -43,11 +43,7 @@ export function ActionArea({
   ) => (
     <Tooltip delayDuration={100}>
       <TooltipTrigger asChild>
-        <button
-          variant="ghost"
-          onClick={onClick}
-          className={`${iconContainerClasses} `}
-        >
+        <button onClick={onClick} className={`${iconContainerClasses} `}>
           {icon}
         </button>
       </TooltipTrigger>

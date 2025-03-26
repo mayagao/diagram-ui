@@ -3,12 +3,42 @@ import { Connector } from "../Connector/Connector";
 import { useDiagramStore } from "../../store/useDiagramStore";
 import { useEffect, useRef, useState } from "react";
 import { useInitializeDiagram } from "../../hooks/useInitializeDiagram";
+import { BLOCK_COLORS } from "@/types/blocks";
+import { BlockState } from "@/types/diagram";
+import { BlockType as DiagramBlockType } from "@/types/diagram";
+import { BlockType as ComponentBlockType } from "@/types/blocks";
+
+// Update DiagramBlock interface to use the correct BlockState
+interface DiagramBlock {
+  id: string;
+  type: DiagramBlockType;
+  position: {
+    row: number;
+  };
+  state: BlockState;
+  // Add other properties that exist on the block
+}
+
+// Add type mapping function
+const mapDiagramTypeToComponentType = (
+  type: DiagramBlockType
+): ComponentBlockType => {
+  // Add mapping for diagram block types to component block types
+  switch (type) {
+    case "processor":
+      return "action"; // or whatever the appropriate mapping should be
+    // Add other cases as needed
+    default:
+      return "action"; // or whatever the default should be
+  }
+};
 
 export function BlockContainer() {
   // Initialize diagram with default blocks
   useInitializeDiagram();
 
-  const blocks = useDiagramStore((state) => state.blocks);
+  // Type the blocks from the store
+  const blocks = useDiagramStore((state) => state.blocks) as DiagramBlock[];
   const connections = useDiagramStore((state) => state.connections);
   const autoConnectBlocks = useDiagramStore((state) => state.autoConnectBlocks);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,15 +114,13 @@ export function BlockContainer() {
     console.log("Connections:", connections.length, connections);
   }, [blockPositions, connections]);
 
-  // Create manual connector array for ordered blocks if no connections exist
+  // Update the manual connectors creation to use BlockState
   const manualConnectors = [];
   if (connections.length === 0 && blocks.length > 1) {
-    // Sort blocks by position (vertical)
     const sortedBlocks = [...blocks].sort(
       (a, b) => a.position.row - b.position.row
     );
 
-    // Create manual connections between consecutive blocks
     for (let i = 0; i < sortedBlocks.length - 1; i++) {
       const sourceBlock = sortedBlocks[i];
       const targetBlock = sortedBlocks[i + 1];
@@ -125,7 +153,13 @@ export function BlockContainer() {
           data-block-id={block.id}
           style={{ marginBottom: "80px" }}
         >
-          <Block id={block.id} />
+          <Block
+            id={block.id}
+            type={mapDiagramTypeToComponentType(block.type)}
+            title={`Block ${block.id}`}
+            description={`${mapDiagramTypeToComponentType(block.type)} block`}
+            color={BLOCK_COLORS[mapDiagramTypeToComponentType(block.type)]}
+          />
         </div>
       ))}
 

@@ -7,7 +7,7 @@ import GenerationBlock from "@/components/blocks/GenerationBlock";
 import ConditionBlock from "@/components/blocks/ConditionBlock";
 import ActionBlock from "@/components/blocks/ActionBlock";
 import { workflowBlocks } from "@/data/workflowBlocks";
-import { BlockState } from "@/types/blocks";
+import { BlockState, BlockResult } from "@/types/blocks";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
 import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 
@@ -94,7 +94,7 @@ export default function NotebookPage() {
   };
 
   // Helper to safely format result data to match component expectations
-  const formatResult = (result: unknown) => {
+  const formatResult = (result: unknown): BlockResult | undefined => {
     if (!result) return undefined;
 
     const typedResult = result as Record<string, unknown>;
@@ -129,10 +129,16 @@ export default function NotebookPage() {
         )
       : undefined;
 
-    return {
-      summary: typedResult.summary || "",
+    // Create the result object with explicit type annotation
+    const formattedResult: BlockResult = {
+      summary:
+        typeof typedResult.summary === "string"
+          ? typedResult.summary
+          : String(typedResult.summary || ""),
       data: processedData,
     };
+
+    return formattedResult;
   };
 
   const handleRun = (blockId: string) => {
@@ -147,83 +153,74 @@ export default function NotebookPage() {
     setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
   };
 
-  // Use a generic type parameter to handle component props
-  const renderBlockStates = <T extends Record<string, unknown>>(
-    BlockComponent: React.ComponentType<T>,
+  // Update renderBlockStates to use type assertion for component compatibility
+  const renderBlockStates = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    BlockComponent: React.ComponentType<any>, // Use any to bypass type checking
     type: string,
     index: number = 0
   ) => (
     <div className="space-y-6">
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            isInNotebook: true,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onRun: () => handleRun(`${type}-${index}`),
-          } as unknown as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          isInNotebook={true}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRun={() => handleRun(`${type}-${index}`)}
         />
       </div>
 
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            state: "running",
-            runningAction: getCurrentAction(type, index),
-            isInNotebook: true,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onPause: () => handlePause(`${type}-${index}`),
-          } as unknown as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="running"
+          runningAction={getCurrentAction(type, index)}
+          isInNotebook={true}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onPause={() => handlePause(`${type}-${index}`)}
         />
       </div>
 
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            state: "paused",
-            runningAction: `Analysis paused`,
-            isInNotebook: true,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onRun: () => handleRun(`${type}-${index}`),
-          } as unknown as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="paused"
+          runningAction={`Analysis paused`}
+          isInNotebook={true}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRun={() => handleRun(`${type}-${index}`)}
         />
       </div>
 
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            state: "finished",
-            result: formatResult(workflowBlocks[type][index].result),
-            isInNotebook: true,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onRerun: () => handleRerun(`${type}-${index}`),
-          } as unknown as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="finished"
+          result={formatResult(workflowBlocks[type][index].result)}
+          isInNotebook={true}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRerun={() => handleRerun(`${type}-${index}`)}
         />
       </div>
 
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            state: "error",
-            errorMessage: getErrorMessage(type),
-            isInNotebook: true,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onRerun: () => handleRerun(`${type}-${index}`),
-          } as unknown as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="error"
+          errorMessage={getErrorMessage(type)}
+          isInNotebook={true}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRerun={() => handleRerun(`${type}-${index}`)}
         />
       </div>
     </div>

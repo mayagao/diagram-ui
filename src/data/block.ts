@@ -32,8 +32,6 @@ export interface BlockDefinitions {
 }
 
 // blockDefinitions.ts
-import { BlockDefinitions } from "./types";
-
 export const BLOCK_DEFINITIONS: BlockDefinitions = {
   blockTypes: [
     {
@@ -137,7 +135,7 @@ export function getBlockTypeDefinition(
   type: BlockType
 ): BlockTypeDefinition | undefined {
   return BLOCK_DEFINITIONS.blockTypes.find(
-    (blockType) => blockType.type === type
+    (blockType: BlockTypeDefinition) => blockType.type === type
   );
 }
 
@@ -145,7 +143,7 @@ export function getBlockStateDefinition(
   state: BlockState
 ): BlockStateDefinition | undefined {
   return BLOCK_DEFINITIONS.blockStates.find(
-    (blockState) => blockState.state === state
+    (blockState: BlockStateDefinition) => blockState.state === state
   );
 }
 

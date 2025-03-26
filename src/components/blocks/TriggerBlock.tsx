@@ -62,19 +62,6 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       );
     }
 
-    if (state === "finished" && result) {
-      return (
-        <div className="mt-2">
-          <p className="font-medium text-green-600">{result.summary}</p>
-          {!isCompact && result.data && (
-            <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-32">
-              {JSON.stringify(result.data, null, 2)}
-            </pre>
-          )}
-        </div>
-      );
-    }
-
     if (state === "error") {
       return (
         <div className="mt-2">
@@ -84,43 +71,51 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
         </div>
       );
     }
-
-    return isCompact ? null : (
-      <p className="mt-2 text-gray-600">{description}</p>
-    );
   };
 
-  // Custom renderer for trigger data
   const renderTriggerData = (
     result: BlockResult,
     isCompact: boolean = false
   ) => {
-    if (!result || !result.data) return null;
-
-    const { filename, documentType, pageCount } = result.data;
-
-    // For compact mode, just show the filename
-    if (isCompact) {
-      return (
-        <div className="text-xs text-gray-700 truncate">
-          {filename || "Untitled Document"}
-        </div>
-      );
-    }
-
-    // Regular detailed view
     return (
       <>
-        <div className="font-medium text-gray-800">
-          {filename || "Untitled Document"}
-        </div>
-        <div className="text-gray-600 flex items-center ">
-          <span>{documentType || "Unknown Type"}</span>
-          <span className="px-1 text-gray-200">•</span>
-          <span>
-            {pageCount ? `${pageCount} page${pageCount !== 1 ? "s" : ""}` : ""}
-          </span>
-        </div>
+        {state === "error" && (
+          <div className="text-red-500">
+            <ExclamationTriangleIcon className="h-5 w-5" />
+          </div>
+        )}
+
+        {!isCompact && !state && (
+          <p className="mt-2 text-gray-600">{description}</p>
+        )}
+        {renderContent()}
+
+        {result && result.data && (
+          <div className="">
+            {isCompact ? (
+              <div className="text-xs text-gray-700 truncate">
+                {result.data.filename || "Untitled Document"}
+              </div>
+            ) : (
+              <>
+                <div className="font-medium text-gray-800">
+                  {result.data.filename || "Untitled Document"}
+                </div>
+                <div className="text-gray-600 flex items-center ">
+                  <span>{result.data.documentType || "Unknown Type"}</span>
+                  <span className="px-1 text-gray-200">•</span>
+                  <span>
+                    {result.data.pageCount
+                      ? `${result.data.pageCount} page${
+                          result.data.pageCount !== 1 ? "s" : ""
+                        }`
+                      : ""}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </>
     );
   };
@@ -146,24 +141,8 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       onRun={onRun}
       onPause={onPause}
       onRerun={onRerun}
-      customResultRenderer={(result) => renderTriggerData(result, isCompact)}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex items-center">
-          <div className="mr-3">{renderIcon()}</div>
-          <h3 className="font-medium">{title}</h3>
-        </div>
-        {state === "error" && (
-          <div className="text-red-500">
-            <ExclamationTriangleIcon className="h-5 w-5" />
-          </div>
-        )}
-      </div>
-      {!isCompact && !state && (
-        <p className="mt-2 text-gray-600">{description}</p>
-      )}
-      {renderContent()}
-    </Block>
+      customResultRenderer={renderTriggerData}
+    />
   );
 };
 

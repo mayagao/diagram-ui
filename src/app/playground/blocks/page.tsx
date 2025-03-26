@@ -7,11 +7,13 @@ import GenerationBlock from "@/components/blocks/GenerationBlock";
 import ConditionBlock from "@/components/blocks/ConditionBlock";
 import ActionBlock from "@/components/blocks/ActionBlock";
 import { workflowBlocks } from "@/data/workflowBlocks";
-import { BlockState } from "@/types/blocks";
-// @ts-expect-error Comment explaining why this import is needed
-// import { BlockType } from '...';
+import { BlockState, BlockResult } from "@/types/blocks";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
 import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
+import { BLOCK_COLORS } from "@/types/blocks";
+
+// Define valid block types more strictly
+type BlockColorType = keyof typeof BLOCK_COLORS;
 
 export default function BlocksDemo() {
   const [isCompact, setIsCompact] = useState(true);
@@ -77,7 +79,7 @@ export default function BlocksDemo() {
   };
 
   // Helper to safely format result data to match component expectations
-  const formatResult = (result: unknown) => {
+  const formatResult = (result: unknown): BlockResult | undefined => {
     if (!result) return undefined;
 
     const typedResult = result as Record<string, unknown>;
@@ -112,10 +114,16 @@ export default function BlocksDemo() {
         )
       : undefined;
 
-    return {
-      summary: typedResult.summary || "",
+    // Create the result object with explicit type annotation
+    const formattedResult: BlockResult = {
+      summary:
+        typeof typedResult.summary === "string"
+          ? typedResult.summary
+          : String(typedResult.summary || ""),
       data: processedData,
     };
+
+    return formattedResult;
   };
 
   const handleRun = (blockId: string) => {
@@ -130,22 +138,26 @@ export default function BlocksDemo() {
     setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
   };
 
-  const renderBlockStates = <T,>(
-    BlockComponent: React.ComponentType<T>,
-    type: string,
+  // Update renderBlockStates to use BlockColorType
+  const renderBlockStates = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    BlockComponent: React.ComponentType<any>,
+    type: BlockColorType,
     index: number = 0
   ) => (
     <div className="space-y-6">
       <div>
         <BlockComponent
-          {...({
-            title: workflowBlocks[type][index].title,
-            description: workflowBlocks[type][index].description,
-            isInNotebook: false,
-            isCompact: isCompact,
-            hideConnectors: true,
-            onRun: () => handleRun(`${type}-${index}`),
-          } as T)}
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          isInNotebook={false}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRun={() => handleRun(`${type}-${index}`)}
+          color={BLOCK_COLORS[type]}
+          _isInDiagram={true}
+          inputs={1}
+          outputs={1}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Default
@@ -162,6 +174,10 @@ export default function BlocksDemo() {
           isCompact={isCompact}
           hideConnectors={true}
           onPause={() => handlePause(`${type}-${index}`)}
+          color={BLOCK_COLORS[type]}
+          _isInDiagram={true}
+          inputs={1}
+          outputs={1}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Running
@@ -178,6 +194,10 @@ export default function BlocksDemo() {
           isCompact={isCompact}
           hideConnectors={true}
           onRun={() => handleRun(`${type}-${index}`)}
+          color={BLOCK_COLORS[type]}
+          _isInDiagram={true}
+          inputs={1}
+          outputs={1}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Paused
@@ -194,6 +214,10 @@ export default function BlocksDemo() {
           isCompact={isCompact}
           hideConnectors={true}
           onRerun={() => handleRerun(`${type}-${index}`)}
+          color={BLOCK_COLORS[type]}
+          _isInDiagram={true}
+          inputs={1}
+          outputs={1}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Finished
@@ -210,6 +234,10 @@ export default function BlocksDemo() {
           isCompact={isCompact}
           hideConnectors={true}
           onRerun={() => handleRerun(`${type}-${index}`)}
+          color={BLOCK_COLORS[type]}
+          _isInDiagram={true}
+          inputs={1}
+          outputs={1}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Error
@@ -241,17 +269,25 @@ export default function BlocksDemo() {
                 </p>
               </div>
               <div className="bg-gray-50 p-6 pt-8 rounded-lg mb-12 col-span-2">
-                {/* Map the correct block component based on type */}
                 {blockType.type === "trigger" &&
-                  renderBlockStates(TriggerBlock, "trigger")}
+                  renderBlockStates(TriggerBlock, "trigger" as BlockColorType)}
                 {blockType.type === "extraction" &&
-                  renderBlockStates(ExtractionBlock, "extraction")}
+                  renderBlockStates(
+                    ExtractionBlock,
+                    "extraction" as BlockColorType
+                  )}
                 {blockType.type === "condition" &&
-                  renderBlockStates(ConditionBlock, "condition")}
+                  renderBlockStates(
+                    ConditionBlock,
+                    "condition" as BlockColorType
+                  )}
                 {blockType.type === "generation" &&
-                  renderBlockStates(GenerationBlock, "generation")}
+                  renderBlockStates(
+                    GenerationBlock,
+                    "generation" as BlockColorType
+                  )}
                 {blockType.type === "action" &&
-                  renderBlockStates(ActionBlock, "action")}
+                  renderBlockStates(ActionBlock, "action" as BlockColorType)}
               </div>
             </div>
           )

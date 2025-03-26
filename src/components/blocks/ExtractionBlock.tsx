@@ -8,7 +8,7 @@ interface ExtractionBlockProps {
   description?: string;
   state?: BlockState;
   size?: "compact" | "default";
-  isInDiagram?: boolean;
+  _isInDiagram?: boolean;
   isInNotebook?: boolean;
   runningAction?: string;
   result?: BlockResult;
@@ -87,7 +87,7 @@ const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
       color={BLOCK_COLORS.extraction}
       icon={DocumentTextIcon}
       size={props.size}
-      isInDiagram={props.isInDiagram}
+      _isInDiagram={props._isInDiagram}
       isInNotebook={props.isInNotebook}
       isCompact={props.isCompact}
       runningAction={props.runningAction}

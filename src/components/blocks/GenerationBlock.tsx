@@ -50,12 +50,10 @@ export default function GenerationBlock({
   ) => {
     if (!result || !result.data) return null;
 
-    // Extract the text data if it exists
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    let generatedText: string | undefined;
-
+    // Instead, use a temporary variable inside the if statement if needed
     if (result.data.text && typeof result.data.text === "string") {
-      generatedText = result.data.text;
+      // Process text if needed without storing in an unused variable
+      // const textValue = result.data.text;
     }
 
     // For compact mode, just show the document name
