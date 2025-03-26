@@ -5,11 +5,6 @@ import { useState } from "react";
 
 // Define component prop types
 interface IconProps {
-  color: {
-    light: string;
-    medium: string;
-    dark: string;
-  };
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
   type: BlockType;
   isCompact?: boolean;
@@ -20,11 +15,6 @@ interface NotebookBlockProps {
   type: BlockType;
   title: string;
   description: string;
-  color: {
-    light: string;
-    medium: string;
-    dark: string;
-  };
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
   children?: ReactNode | ((isHovered: boolean) => React.ReactNode);
   state?: string;
@@ -43,24 +33,11 @@ interface ConnectorProps {
 // Icon container component
 export function BlockIcon({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  color: _color,
   icon: Icon,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type: _type = "trigger",
   isCompact = false,
-  state = "idle",
 }: IconProps & { state?: string }) {
-  const getIconColor = () => {
-    switch (state) {
-      case "running":
-        return "#2563eb"; // blue-600
-      case "error":
-        return "#dc2626"; // red-600
-      default:
-        return "#64748b"; // gray-500 for default/idle state
-    }
-  };
-
   return (
     <div
       className={`
@@ -71,7 +48,7 @@ export function BlockIcon({
         ${isCompact ? "my-auto" : ""}
       `}
     >
-      {Icon && <Icon className="w-5 h-5" style={{ color: getIconColor() }} />}
+      {Icon && <Icon className="w-5 h-5 text-gray-500" />}
     </div>
   );
 }
@@ -176,8 +153,6 @@ export function NotebookBlock({
   title,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   description: _description,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  color: _color,
   icon: Icon,
   isCompact = false,
   children,

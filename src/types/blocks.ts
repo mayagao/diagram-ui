@@ -34,11 +34,7 @@ interface BaseBlockProps {
 }
 
 export type TriggerBlockProps = BaseBlockProps & {
-  color?: {
-    light: string;
-    medium: string;
-    dark: string;
-  };
+  color?: string;
 };
 
 export type ExtractionBlockProps = BaseBlockProps;
@@ -50,43 +46,15 @@ export interface BlockProps {
   state?: BlockState;
   inputs?: number;
   outputs?: number;
-  color: {
-    light: string;
-    medium: string;
-    dark: string;
-  };
+  color: string;
   result?: BlockResult;
 }
 
 export const BLOCK_COLORS = {
-  trigger: {
-    light: "bg-blue-100",
-    medium: "bg-blue-500",
-    dark: "bg-blue-700",
-  },
-  extraction: {
-    light: "bg-purple-100",
-    medium: "bg-purple-500",
-    dark: "bg-purple-700",
-  },
-  generation: {
-    light: "bg-green-100",
-    medium: "bg-green-500",
-    dark: "bg-green-700",
-  },
-  condition: {
-    light: "bg-orange-100",
-    medium: "bg-orange-500",
-    dark: "bg-orange-700",
-  },
-  action: {
-    light: "bg-red-100",
-    medium: "bg-red-500",
-    dark: "bg-red-700",
-  },
-  end: {
-    light: "bg-gray-100",
-    medium: "bg-gray-500",
-    dark: "bg-gray-700",
-  },
+  trigger: "bg-blue-500",
+  extraction: "bg-purple-500",
+  generation: "bg-green-500",
+  condition: "bg-orange-500",
+  action: "bg-red-500",
+  end: "bg-gray-500",
 };

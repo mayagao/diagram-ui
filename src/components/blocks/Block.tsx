@@ -16,19 +16,12 @@ import {
 } from "./BlockComponents";
 import { ActionArea } from "./BlockComponents/ActionArea";
 
-interface BlockColor {
-  light: string;
-  medium: string;
-  dark: string;
-}
-
 interface ExtendedBlockProps extends Omit<BlockProps, "type"> {
   id?: string;
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   description: string;
   type: BlockType;
   title: string;
-  color: BlockColor;
   size?: "compact" | "default";
   _isInDiagram?: boolean;
   isInNotebook?: boolean;
@@ -103,7 +96,7 @@ export default function Block(props: ExtendedBlockProps) {
           description={description || ""}
           type={type || "trigger"}
           state={state}
-          color={color || { light: "", medium: "", dark: "" }}
+          color={color || ""}
           icon={Icon}
           isCompact={isCompact}
           runningAction={runningAction}
@@ -124,7 +117,7 @@ export default function Block(props: ExtendedBlockProps) {
           description={description || ""}
           type={type || "trigger"}
           state={state}
-          color={color || { light: "", medium: "", dark: "" }}
+          color={color || ""}
           icon={Icon}
           inputs={inputs}
           outputs={outputs}
@@ -160,7 +153,6 @@ function NotebookView({
   type,
   title,
   description,
-  color,
   icon: Icon,
   isCompact = false,
   state,
@@ -187,7 +179,6 @@ function NotebookView({
       type={type}
       title={title}
       description={description}
-      color={color}
       icon={Icon || (() => null)}
       isCompact={isCompact}
       state={state || "idle"}
@@ -335,7 +326,6 @@ function DiagramView({
   title,
   description,
   state,
-  color,
   icon: Icon,
   inputs = 0,
   outputs = 0,
@@ -384,7 +374,6 @@ function DiagramView({
         {/* Header with icon and title */}
         <div className="flex items-center gap-2 relative px-2 py-2">
           <BlockIcon
-            color={color}
             icon={Icon || (() => null)}
             type={type}
             isCompact={isCompact}
