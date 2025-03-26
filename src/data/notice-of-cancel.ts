@@ -293,6 +293,27 @@ export const noticeOfCancelWorkflow: Record<BlockType, BlockData[]> = {
       result: {
         summary: "Payment status evaluated",
         data: {
+          details: [
+            {
+              rule: "Recent Payment",
+              status: "failed",
+              message: "No payment in the last billing cycle",
+            },
+            {
+              rule: "Payment Amount",
+              status: "failed",
+              message: "Outstanding balance remains",
+            },
+            {
+              rule: "Account Status",
+              status: "passed",
+              message: "Account is active",
+            },
+          ],
+          passedRules: 1,
+          failedRules: 2,
+          pendingRules: 0,
+          totalRules: 3,
           hasPayment: false,
           evaluationDate: "2024-03-26T10:00:00Z",
         },
@@ -320,6 +341,27 @@ export const noticeOfCancelWorkflow: Record<BlockType, BlockData[]> = {
       result: {
         summary: "Timeline evaluation completed",
         data: {
+          details: [
+            {
+              rule: "Days Since First Notice",
+              status: "passed",
+              message: "More than 7 days since first notice",
+            },
+            {
+              rule: "Previous Notices Sent",
+              status: "passed",
+              message: "Follow-up notice has been sent",
+            },
+            {
+              rule: "Grace Period",
+              status: "failed",
+              message: "Still within grace period (4 days remaining)",
+            },
+          ],
+          passedRules: 2,
+          failedRules: 1,
+          pendingRules: 0,
+          totalRules: 3,
           isFinalNotice: false,
           daysUntilCancellation: 4,
         },
