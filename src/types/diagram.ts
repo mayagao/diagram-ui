@@ -1,9 +1,15 @@
-export type BlockType = "processor" | "transformer" | "output";
+export type BlockType =
+  | "trigger"
+  | "extraction"
+  | "generation"
+  | "condition"
+  | "action"
+  | "end";
 export type BlockState = "idle" | "running" | "finished" | "error";
 
 export interface Position {
-  row: number;
-  column: number;
+  x: number;
+  y: number;
 }
 
 export interface Block {
@@ -21,6 +27,8 @@ export interface Connection {
   id: string;
   sourceId: string;
   targetId: string;
+  condition?: string;
+  isTrueBranch?: boolean;
 }
 
 export interface DiagramState {
@@ -30,19 +38,23 @@ export interface DiagramState {
   isDragging: boolean;
 }
 
-// Validation rules for connections between different block types
+// Define valid connections between block types
 export const VALID_CONNECTIONS: Record<BlockType, BlockType[]> = {
-  processor: ["transformer", "output"],
-  transformer: ["output"],
-  output: [],
+  trigger: ["extraction", "action", "condition"],
+  extraction: ["action", "condition"],
+  generation: ["action", "condition", "end"],
+  condition: ["generation", "action", "trigger", "end"],
+  action: ["condition", "generation", "end"],
+  end: [],
 };
 
-// Maximum number of connections allowed for each block type
-export const MAX_CONNECTIONS: Record<
-  BlockType,
-  { inputs: number; outputs: number }
-> = {
-  processor: { inputs: 1, outputs: 2 },
-  transformer: { inputs: 2, outputs: 1 },
-  output: { inputs: 1, outputs: 0 },
-};
+// Define number of inputs and outputs for each block type
+export const BLOCK_IO: Record<BlockType, { inputs: number; outputs: number }> =
+  {
+    trigger: { inputs: 0, outputs: 1 },
+    extraction: { inputs: 1, outputs: 1 },
+    generation: { inputs: 1, outputs: 1 },
+    condition: { inputs: 1, outputs: 2 },
+    action: { inputs: 1, outputs: 1 },
+    end: { inputs: 1, outputs: 0 },
+  };

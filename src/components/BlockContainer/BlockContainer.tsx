@@ -1,36 +1,30 @@
 import Block from "../blocks/Block";
 import { Connector } from "../Connector/Connector";
+import { BranchingConnector } from "../Connector/BranchingConnector";
 import { useDiagramStore } from "../../store/useDiagramStore";
 import { useEffect, useRef, useState } from "react";
 import { useInitializeDiagram } from "../../hooks/useInitializeDiagram";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { BlockState } from "@/types/diagram";
-import { BlockType as DiagramBlockType } from "@/types/diagram";
-import { BlockType as ComponentBlockType } from "@/types/blocks";
+import { BlockState, BlockType } from "@/types/diagram";
 
 // Update DiagramBlock interface to use the correct BlockState
 interface DiagramBlock {
   id: string;
-  type: DiagramBlockType;
+  type: BlockType;
   position: {
-    row: number;
+    x: number;
+    y: number;
   };
   state: BlockState;
-  // Add other properties that exist on the block
+  label: string;
+  inputs: string[];
+  outputs: string[];
+  config: Record<string, unknown>;
 }
 
 // Add type mapping function
-const mapDiagramTypeToComponentType = (
-  type: DiagramBlockType
-): ComponentBlockType => {
-  // Add mapping for diagram block types to component block types
-  switch (type) {
-    case "processor":
-      return "action"; // or whatever the appropriate mapping should be
-    // Add other cases as needed
-    default:
-      return "action"; // or whatever the default should be
-  }
+const mapDiagramTypeToComponentType = (type: BlockType): BlockType => {
+  return type; // Since we're using the same types now
 };
 
 export function BlockContainer() {
@@ -58,67 +52,31 @@ export function BlockContainer() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const updatePositions = () => {
-      const positions = new Map<string, { top: number; bottom: number }>();
-
-      // Get all block elements
-      const blockWrappers =
-        containerRef.current?.querySelectorAll(".block-wrapper");
-
-      console.log("Found block wrappers:", blockWrappers?.length);
-
-      blockWrappers?.forEach((element) => {
-        const blockId = element.getAttribute("data-block-id");
-        if (!blockId) return;
-
+    const newPositions = new Map<string, { top: number; bottom: number }>();
+    blocks.forEach((block) => {
+      const element = containerRef.current?.querySelector(
+        `[data-block-id="${block.id}"]`
+      );
+      if (element) {
         const rect = element.getBoundingClientRect();
-        const containerRect = containerRef.current!.getBoundingClientRect();
-
-        positions.set(blockId, {
-          top: rect.top - containerRect.top,
-          bottom: rect.bottom - containerRect.top,
-        });
-      });
-
-      setBlockPositions(positions);
-    };
-
-    // Initial position calculation after a short delay to ensure DOM is ready
-    setTimeout(updatePositions, 300);
-
-    // Add resize observer to recalculate on size changes
-    const observer = new ResizeObserver(() => {
-      updatePositions();
-      autoConnectBlocks(); // Reconnect blocks after resize
+        const containerRect = containerRef.current?.getBoundingClientRect();
+        if (containerRect) {
+          newPositions.set(block.id, {
+            top: rect.top - containerRect.top,
+            bottom: rect.bottom - containerRect.top,
+          });
+        }
+      }
     });
-    observer.observe(containerRef.current);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [blocks, autoConnectBlocks]);
+    setBlockPositions(newPositions);
+  }, [blocks]);
 
-  // Auto-connect blocks when blocks array changes
-  useEffect(() => {
-    console.log("Block count changed, auto-connecting...");
-    autoConnectBlocks();
-  }, [blocks.length, autoConnectBlocks]); // Only reconnect when block count changes
-
-  // Debug
-  useEffect(() => {
-    console.log(
-      "Block positions:",
-      blockPositions.size,
-      Array.from(blockPositions.entries())
-    );
-    console.log("Connections:", connections.length, connections);
-  }, [blockPositions, connections]);
-
-  // Update the manual connectors creation to use BlockState
+  // Create manual connectors if no connections exist
   const manualConnectors = [];
   if (connections.length === 0 && blocks.length > 1) {
     const sortedBlocks = [...blocks].sort(
-      (a, b) => a.position.row - b.position.row
+      (a, b) => a.position.y - b.position.y
     );
 
     for (let i = 0; i < sortedBlocks.length - 1; i++) {
@@ -156,8 +114,8 @@ export function BlockContainer() {
           <Block
             id={block.id}
             type={mapDiagramTypeToComponentType(block.type)}
-            title={`Block ${block.id}`}
-            description={`${mapDiagramTypeToComponentType(block.type)} block`}
+            title={block.label}
+            description={`${block.type} block`}
             color={BLOCK_COLORS[mapDiagramTypeToComponentType(block.type)]}
           />
         </div>
@@ -178,6 +136,23 @@ export function BlockContainer() {
 
         const sourceBlock = blocks.find((b) => b.id === connection.sourceId);
         if (!sourceBlock) return null;
+
+        // Check if this is a branching connection
+        const isBranching = connection.condition !== undefined;
+        if (isBranching) {
+          return (
+            <BranchingConnector
+              key={connection.id}
+              fromBlockId={connection.sourceId}
+              toBlockId={connection.targetId}
+              state={sourceBlock.state}
+              startY={sourcePos.bottom}
+              endY={targetPos.top}
+              condition={connection.condition}
+              isTrueBranch={connection.isTrueBranch}
+            />
+          );
+        }
 
         return (
           <Connector

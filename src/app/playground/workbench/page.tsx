@@ -12,12 +12,24 @@ import {
 import { BlockState, BlockResult, BlockResultData } from "@/types/blocks";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
 import { BLOCK_COLORS } from "@/types/blocks";
+import { BlockType } from "@/types/diagram";
 
 export default function NotebookWorkflowPage() {
-  const [isCompact, setIsCompact] = useState(true);
-  const [blockStates, setBlockStates] = useState<Record<string, BlockState>>(
-    {}
-  );
+  const [isCompact, setIsCompact] = useState(false);
+  const [blockStates, setBlockStates] = useState<Record<string, BlockState>>({
+    // First 4 blocks completed
+    "trigger-0": "finished",
+    "extraction-0": "finished",
+    "action-0": "finished",
+    "condition-0": "finished",
+    // 5th block running
+    "generation-0": "running",
+    // Remaining blocks pending (idle)
+    "trigger-1": "idle",
+    "condition-1": "idle",
+    "generation-1": "idle",
+    "end-0": "idle",
+  });
   const [currentWorkflow, setCurrentWorkflow] = useState(
     "Notice of Cancellation"
   );
@@ -84,9 +96,17 @@ export default function NotebookWorkflowPage() {
   };
 
   // Render a single block
-  const renderBlock = (type: string, index: number) => {
+  const renderBlock = (type: BlockType, index: number) => {
     const BlockComponent = getBlockComponent(type);
-    const block = noticeOfCancelWorkflow[type][index];
+
+    // Safely access the block data
+    const blockData = noticeOfCancelWorkflow[type];
+    if (!blockData || !blockData[index]) {
+      console.error(`No block data found for type ${type} at index ${index}`);
+      return null;
+    }
+
+    const block = blockData[index];
     const blockId = `${type}-${index}`;
     const state = blockStates[blockId] || "idle";
 
@@ -116,14 +136,46 @@ export default function NotebookWorkflowPage() {
     blocks: string[];
   }) => {
     return (
-      <div key={group.id} className="mb-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
-          {group.title}
-        </h3>
-        <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-          {group.blocks.map((blockType) => {
-            const index = 0; // For this workflow, we only have one block of each type
-            return renderBlock(blockType, index);
+      <div key={group.id} className="relative">
+        <div className="space-y-4">
+          {group.blocks.map((blockId, index) => {
+            // Find the block data by ID
+            let foundBlockType: BlockType | null = null;
+            let foundBlockIndex = -1;
+
+            // Search through all block types
+            for (const [type, blocks] of Object.entries(
+              noticeOfCancelWorkflow
+            )) {
+              const index = blocks.findIndex((block) => block.id === blockId);
+              if (index !== -1) {
+                foundBlockType = type as BlockType;
+                foundBlockIndex = index;
+                break;
+              }
+            }
+
+            if (!foundBlockType || foundBlockIndex === -1) {
+              console.error(`No block data found for ID: ${blockId}`);
+              return null;
+            }
+
+            return (
+              <div key={blockId} className="relative">
+                {/* Vertical line for visual flow */}
+                {index < group.blocks.length - 1 && (
+                  <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-gray-200" />
+                )}
+                {/* Horizontal line connecting to the next block */}
+                {index < group.blocks.length - 1 && (
+                  <div className="absolute left-4 top-12 w-8 h-0.5 bg-gray-200" />
+                )}
+                {/* Block with indentation */}
+                <div className="pl-8">
+                  {renderBlock(foundBlockType, foundBlockIndex)}
+                </div>
+              </div>
+            );
           })}
         </div>
       </div>
@@ -142,8 +194,7 @@ export default function NotebookWorkflowPage() {
 
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">{currentWorkflow}</h1>
-          <div className="space-y-8">
+          <div className="space-y-12">
             {noticeOfCancelLayout.groups.map(renderGroup)}
           </div>
         </div>

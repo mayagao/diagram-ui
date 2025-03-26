@@ -1,8 +1,11 @@
 import { BlockData } from "./workflowBlocks";
+import { BlockType } from "@/types/diagram";
 
-export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
+export const noticeOfCancelWorkflow: Record<BlockType, BlockData[]> = {
   trigger: [
     {
+      id: "foundation-api-trigger",
+      type: "trigger",
       title: "API Call to Foundation",
       description: "Fetch customer data from Foundation API",
       inputs: {
@@ -39,9 +42,33 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
         },
       },
     },
+    {
+      id: "two-day-trigger",
+      type: "trigger",
+      title: "Two Day Check",
+      description: "Trigger check every two days",
+      inputs: {
+        interval: {
+          type: "number",
+          description: "Interval in days",
+          default: 2,
+        },
+      },
+      outputs: [],
+      actions: ["Waiting for interval", "Triggering check"],
+      result: {
+        summary: "Two day interval triggered",
+        data: {
+          lastCheck: "2024-03-26T10:00:00Z",
+          nextCheck: "2024-03-28T10:00:00Z",
+        },
+      },
+    },
   ],
   extraction: [
     {
+      id: "customer-data-extraction",
+      type: "extraction",
       title: "Extract Customer Data",
       description: "Extract relevant information from customer document",
       inputs: {
@@ -52,9 +79,52 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
       },
       outputs: [
         {
-          name: "extractedData",
+          name: "customerInfo",
           type: "object",
-          description: "Extracted customer information",
+          description: "Basic customer information",
+          properties: {
+            customerName: {
+              type: "string",
+              description: "Full name of customer",
+            },
+            email: { type: "string", description: "Customer email address" },
+            accountNumber: {
+              type: "string",
+              description: "Unique account identifier",
+            },
+          },
+        },
+        {
+          name: "paymentInfo",
+          type: "object",
+          description: "Payment-related information",
+          properties: {
+            lastPaymentDate: {
+              type: "string",
+              description: "Date of last payment",
+            },
+            paymentMethod: {
+              type: "string",
+              description: "Preferred payment method",
+            },
+            outstandingBalance: {
+              type: "number",
+              description: "Current balance",
+            },
+          },
+        },
+        {
+          name: "serviceInfo",
+          type: "object",
+          description: "Service-related information",
+          properties: {
+            serviceType: { type: "string", description: "Type of service" },
+            startDate: { type: "string", description: "Service start date" },
+            cancellationDate: {
+              type: "string",
+              description: "Scheduled cancellation date",
+            },
+          },
         },
       ],
       actions: [
@@ -74,6 +144,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
   ],
   action: [
     {
+      id: "check-payments-rpa",
+      type: "action",
       title: "Check Payment Status",
       description: "RPA action to check customer payment status on website",
       inputs: {
@@ -102,7 +174,11 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
         },
       },
     },
+  ],
+  generation: [
     {
+      id: "initial-notice-email",
+      type: "generation",
       title: "Send Initial Notice",
       description: "Send initial payment request email to customer",
       inputs: {
@@ -132,31 +208,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
       },
     },
     {
-      title: "Check Payment Status (Follow-up)",
-      description: "Check if customer has made payment after initial notice",
-      inputs: {
-        customerData: {
-          type: "object",
-          description: "Customer data to check",
-        },
-      },
-      outputs: [
-        {
-          name: "paymentStatus",
-          type: "object",
-          description: "Updated payment status",
-        },
-      ],
-      actions: ["Checking payment status", "Updating records"],
-      result: {
-        summary: "Follow-up payment check completed",
-        data: {
-          hasPayments: false,
-          daysSinceNotice: 2,
-        },
-      },
-    },
-    {
+      id: "follow-up-email",
+      type: "generation",
       title: "Send Follow-up Email",
       description: "Send follow-up payment request email",
       inputs: {
@@ -186,6 +239,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
       },
     },
     {
+      id: "final-notice-email",
+      type: "generation",
       title: "Send Final Notice",
       description: "Send final notice email before cancellation",
       inputs: {
@@ -217,6 +272,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
   ],
   condition: [
     {
+      id: "check-payment-status",
+      type: "condition",
       title: "Has Payment?",
       description: "Check if customer has made payment",
       inputs: {
@@ -242,6 +299,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
       },
     },
     {
+      id: "check-final-notice",
+      type: "condition",
       title: "Is Final Notice Time?",
       description: "Check if it's time to send final notice",
       inputs: {
@@ -269,6 +328,8 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
   ],
   end: [
     {
+      id: "workflow-end",
+      type: "end",
       title: "End Workflow",
       description: "Complete the notice of cancellation workflow",
       inputs: {
@@ -293,29 +354,64 @@ export const noticeOfCancelWorkflow: Record<string, BlockData[]> = {
 // Define the workflow connections and layout
 export const noticeOfCancelLayout = {
   connections: [
-    { from: "trigger", to: "extraction" },
-    { from: "extraction", to: "action" },
-    { from: "action", to: "condition" },
-    { from: "condition", to: "action", condition: "!hasPayment" },
-    { from: "condition", to: "end", condition: "hasPayment" },
-    { from: "action", to: "condition", condition: "!isFinalNotice" },
-    { from: "action", to: "end", condition: "isFinalNotice" },
+    { from: "foundation-api-trigger", to: "customer-data-extraction" },
+    { from: "customer-data-extraction", to: "check-payments-rpa" },
+    { from: "check-payments-rpa", to: "check-payment-status" },
+    {
+      from: "check-payment-status",
+      to: "initial-notice-email",
+      condition: "!hasPayment",
+    },
+    {
+      from: "check-payment-status",
+      to: "workflow-end",
+      condition: "hasPayment",
+    },
+    { from: "initial-notice-email", to: "two-day-trigger" },
+    { from: "two-day-trigger", to: "check-payments-rpa" },
+    { from: "check-payments-rpa", to: "check-payment-status" },
+    {
+      from: "check-payment-status",
+      to: "follow-up-email",
+      condition: "!hasPayment",
+    },
+    {
+      from: "check-payment-status",
+      to: "workflow-end",
+      condition: "hasPayment",
+    },
+    { from: "follow-up-email", to: "check-final-notice" },
+    {
+      from: "check-final-notice",
+      to: "final-notice-email",
+      condition: "isFinalNotice",
+    },
+    {
+      from: "check-final-notice",
+      to: "two-day-trigger",
+      condition: "!isFinalNotice",
+    },
+    { from: "final-notice-email", to: "workflow-end" },
   ],
   groups: [
     {
       id: "initial-process",
       title: "Initial Process",
-      blocks: ["trigger", "extraction", "action"],
+      blocks: [
+        "foundation-api-trigger",
+        "customer-data-extraction",
+        "check-payments-rpa",
+      ],
     },
     {
       id: "follow-up-process",
       title: "Follow-up Process",
-      blocks: ["condition", "action"],
+      blocks: ["two-day-trigger", "check-payments-rpa", "check-payment-status"],
     },
     {
       id: "final-process",
       title: "Final Process",
-      blocks: ["condition", "action", "end"],
+      blocks: ["check-final-notice", "final-notice-email", "workflow-end"],
     },
   ],
 };
