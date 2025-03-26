@@ -6,6 +6,7 @@ module.exports = {
       {
         argsIgnorePattern: "^_",
         varsIgnorePattern: "^_",
+        caughtErrorsPattern: "^_",
         destructuredArrayIgnorePattern: "^_",
       },
     ],
@@ -19,4 +20,7 @@ module.exports = {
     "node_modules/",
     ".vercel",
   ],
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+  },
 };

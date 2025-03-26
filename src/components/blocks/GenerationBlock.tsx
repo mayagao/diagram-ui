@@ -1,6 +1,6 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { SquaresPlusIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import { SquaresPlusIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface GenerationBlockProps {
@@ -18,6 +18,13 @@ interface GenerationBlockProps {
   onRun?: () => void;
   onPause?: () => void;
   onRerun?: () => void;
+}
+
+// Add proper section type
+interface Section {
+  title?: string;
+  name?: string;
+  [key: string]: unknown;
 }
 
 export default function GenerationBlock({
@@ -45,21 +52,15 @@ export default function GenerationBlock({
 
     // Extract the text data if it exists
     let generatedText: string | undefined;
-    let tokens: number | undefined;
+    // Remove unused _tokens or add an actual use for it
+    // let _tokens: number | undefined;
 
     if (result.data.text && typeof result.data.text === "string") {
       generatedText = result.data.text;
     }
-    if (result.data.tokens && typeof result.data.tokens === "number") {
-      tokens = result.data.tokens;
-    }
-
-    // Handle event with proper typing
-    const handleCopy = (_e: React.MouseEvent<HTMLButtonElement>) => {
-      if (generatedText) {
-        navigator.clipboard.writeText(generatedText);
-      }
-    };
+    // if (result.data.tokens && typeof result.data.tokens === "number") {
+    //   _tokens = result.data.tokens;
+    // }
 
     // For compact mode, just show the document name
     if (isCompact) {
@@ -87,7 +88,9 @@ export default function GenerationBlock({
                 •{" "}
                 {typeof section === "string"
                   ? section
-                  : section.title || section.name || `Section ${index + 1}`}
+                  : (section as Section).title ||
+                    (section as Section).name ||
+                    `Section ${index + 1}`}
               </div>
             ))}
 
@@ -102,16 +105,17 @@ export default function GenerationBlock({
     );
   };
 
-  // Helper to get sections consistently
-  const getSections = (data: any) => {
-    let sections: any[] = [];
+  // Fix the catch clause with unused variable
+  const getSections = (data: Record<string, unknown>) => {
+    let sections: unknown[] = [];
     try {
       if (typeof data.sections === "string") {
         sections = JSON.parse(data.sections);
       } else if (Array.isArray(data.sections)) {
         sections = data.sections;
       }
-    } catch (e) {
+    } catch (_) {
+      // Changed to just underscore
       sections = [];
     }
     return sections;
@@ -128,7 +132,7 @@ export default function GenerationBlock({
       color={BLOCK_COLORS.generation}
       icon={SquaresPlusIcon}
       size={size}
-      isInDiagram={isInDiagram}
+      _isInDiagram={isInDiagram} // Changed to use _isInDiagram
       isInNotebook={isInNotebook}
       isCompact={isCompact}
       runningAction={runningAction}

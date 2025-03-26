@@ -1,10 +1,7 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { BlockProps, BlockResult } from "@/types/blocks";
-import {
-  BeakerIcon,
-  QuestionMarkCircleIcon,
-} from "@heroicons/react/24/outline";
+import { BlockResult } from "@/types/blocks";
+import { BeakerIcon } from "@heroicons/react/24/outline";
 
 // Fix the type errors by using proper typings
 interface ConditionBlockProps {
@@ -84,7 +81,9 @@ const ConditionBlock: React.FC<ConditionBlockProps> = (props) => {
           details = [];
         }
       } else if (result.data.details) {
-        details = result.data.details;
+        details = Array.isArray(result.data.details)
+          ? result.data.details
+          : [result.data.details];
       }
     } catch {
       details = [];
@@ -157,7 +156,7 @@ const ConditionBlock: React.FC<ConditionBlockProps> = (props) => {
       color={BLOCK_COLORS.condition}
       icon={BeakerIcon}
       size={props.size}
-      isInDiagram={props.isInDiagram}
+      _isInDiagram={props.isInDiagram}
       isInNotebook={props.isInNotebook}
       isCompact={props.isCompact}
       runningAction={props.runningAction}

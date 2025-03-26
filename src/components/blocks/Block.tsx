@@ -21,7 +21,7 @@ interface ExtendedBlockProps extends BlockProps {
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   description: string;
   size?: "compact" | "default";
-  isInDiagram?: boolean;
+  _isInDiagram?: boolean;
   isInNotebook?: boolean;
   runningAction?: string;
   result?: BlockResult;
@@ -64,7 +64,7 @@ export default function Block(props: ExtendedBlockProps) {
     color,
     icon: Icon,
     size = "default",
-    isInDiagram = true,
+    _isInDiagram = true,
     isInNotebook = false,
     isCompact = false,
     runningAction,
@@ -157,7 +157,12 @@ function NotebookView({
   setIsHovered,
   isRunning,
   isFinished,
-}: ExtendedBlockProps) {
+}: ExtendedBlockProps & {
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
+  isRunning: boolean;
+  isFinished: boolean;
+}) {
   // Add state variables at the top of the component
   const isError = state === "error";
 
@@ -169,15 +174,15 @@ function NotebookView({
       color={color}
       icon={Icon}
       isCompact={isCompact}
-      state={state}
+      state={state || "idle"}
       className="hover:shadow-md cursor-pointer"
     >
-      {(isHovered: boolean) => (
+      {(hoverState: boolean) => (
         <>
           <div className="absolute top-3 right-3">
             <ActionArea
-              state={state}
-              isHovered={isHovered}
+              state={state || "idle"}
+              isHovered={hoverState}
               onRun={onRun}
               onPause={onPause}
               onRerun={onRerun}
@@ -316,7 +321,7 @@ function DiagramView({
           w-64
           min-h-[52px]
           rounded-md
-          ${getStateStyles(state)} 
+          ${getStateStyles(state || "idle")} 
           transition-all duration-200
           ${isRunning ? "bg-blue-50" : ""}
           flex flex-col 
@@ -333,7 +338,7 @@ function DiagramView({
         <div className="flex items-center gap-2 relative px-2 py-2">
           <BlockIcon
             color={color}
-            icon={Icon}
+            icon={Icon || (() => null)}
             type={type}
             isCompact={isCompact}
           />
@@ -346,7 +351,7 @@ function DiagramView({
             {isCompact && renderCompactContent()}
           </div>
           <ActionArea
-            state={state}
+            state={state || "idle"}
             isHovered={isHovered}
             onRun={onRun}
             onPause={onPause}

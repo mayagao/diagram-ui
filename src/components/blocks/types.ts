@@ -1,3 +1,5 @@
 export interface CustomDataRenderer {
-  renderResult(result: any): React.ReactNode;
+  renderResult(result: Record<string, unknown>): React.ReactNode;
 }
+
+export type SomeFunction = (params: Record<string, unknown>) => Promise<void>;

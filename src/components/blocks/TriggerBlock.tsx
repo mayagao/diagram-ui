@@ -3,7 +3,7 @@ import {
   ArrowDownCircleIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  DocumentIcon,
+  // DocumentIcon
 } from "@heroicons/react/24/outline";
 import { Spinner } from "@/components/ui/spinner";
 import Block from "./Block";
@@ -15,7 +15,7 @@ interface TriggerBlockProps extends Omit<BlockProps, "type"> {
   description?: string;
   state?: "idle" | "running" | "finished" | "error";
   size?: "compact" | "default";
-  isInDiagram?: boolean;
+  _isInDiagram?: boolean;
   isInNotebook?: boolean;
   runningAction?: string;
   result?: BlockResult;
@@ -32,7 +32,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
   description = "Initiates workflow execution",
   state,
   size,
-  isInDiagram,
+  _isInDiagram,
   isInNotebook,
   runningAction,
   result,
@@ -136,7 +136,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
       color={BLOCK_COLORS.trigger}
       icon={ArrowDownCircleIcon}
       size={size}
-      isInDiagram={isInDiagram}
+      _isInDiagram={_isInDiagram}
       isInNotebook={isInNotebook}
       isCompact={isCompact}
       runningAction={runningAction}

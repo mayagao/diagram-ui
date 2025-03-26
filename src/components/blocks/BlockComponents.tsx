@@ -42,9 +42,9 @@ interface ConnectorProps {
 
 // Icon container component
 export function BlockIcon({
-  color,
+  color: _color,
   icon: Icon,
-  type,
+  type: _type,
   isCompact = false,
   state = "idle",
 }: IconProps & { state?: string }) {
@@ -83,7 +83,7 @@ export function InputConnector({}: ConnectorProps) {
   );
 }
 
-export function OutputConnector({ isLoading }: ConnectorProps) {
+export function OutputConnector({ isLoading: _isLoading }: ConnectorProps) {
   return (
     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
       <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />
@@ -122,7 +122,7 @@ export function BlockContent({
 // Running indicator component
 export function RunningBlock({
   action,
-  _isCompact: isCompact = false,
+  isCompact: _isCompact = false,
 }: {
   action: string;
   isCompact?: boolean;
@@ -139,7 +139,7 @@ export function RunningBlock({
 
 // Output results component
 export function OutputResult({
-  _type: type,
+  type: _type,
   result,
   isCompact = false,
 }: OutputResultProps & { isCompact?: boolean }) {
@@ -164,10 +164,10 @@ export function OutputResult({
 
 // Notebook-specific block styling
 export function NotebookBlock({
-  _type: type,
+  type: _type,
   title,
-  _description: description,
-  _color: color,
+  description: _description,
+  color: _color,
   icon: Icon,
   isCompact = false,
   children,
