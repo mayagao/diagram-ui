@@ -39,7 +39,10 @@ interface ExtendedBlockProps extends Omit<BlockProps, "type"> {
   onRun?: () => void;
   onPause?: () => void;
   onRerun?: () => void;
-  customResultRenderer?: (result: BlockResult) => React.ReactNode;
+  customResultRenderer?: (
+    result: BlockResult,
+    isCompact?: boolean
+  ) => React.ReactNode;
   hideConnectors?: boolean;
 }
 
@@ -145,6 +148,13 @@ export default function Block(props: ExtendedBlockProps) {
   );
 }
 
+interface NotebookViewProps extends ExtendedBlockProps {
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
+  isRunning: boolean;
+  isFinished: boolean;
+}
+
 // Notebook view implementation
 function NotebookView({
   type,
@@ -168,12 +178,7 @@ function NotebookView({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isRunning,
   isFinished,
-}: ExtendedBlockProps & {
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
-  isRunning: boolean;
-  isFinished: boolean;
-}) {
+}: NotebookViewProps) {
   // Add state variables at the top of the component
   const isError = state === "error";
 
@@ -239,32 +244,28 @@ function NotebookView({
       if (isFinished && result) {
         // Use custom renderer if provided
         if (customResultRenderer) {
-          return customResultRenderer(result);
+          return customResultRenderer(result, isCompact);
         }
 
         return (
           <div
             className={`px-2 py-1  bg-gray-50 border-t border-gray-200 text-xs `}
           >
-            {customResultRenderer ? (
-              customResultRenderer(result)
-            ) : (
-              <div className="mt-2 p-2 border rounded-lg text-xs">
-                <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-                  {result.summary}
-                </div>
-                {result.data && (
-                  <div className="mt-1 text-xs opacity-80">
-                    {Object.entries(result.data).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span>{key}:</span>
-                        <span>{String(value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <div className="mt-2 p-2 border rounded-lg text-xs">
+              <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                {result.summary}
               </div>
-            )}
+              {result.data && (
+                <div className="mt-1 text-xs opacity-80">
+                  {Object.entries(result.data).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span>{key}:</span>
+                      <span>{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         );
       }
@@ -295,7 +296,7 @@ function NotebookView({
               className={`px-2 py-1  bg-gray-50 border-t border-gray-200 text-xs `}
             >
               {customResultRenderer ? (
-                customResultRenderer(result)
+                customResultRenderer(result, isCompact)
               ) : (
                 <div className="mt-2 p-2 border rounded-lg text-xs">
                   <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
@@ -319,6 +320,13 @@ function NotebookView({
       );
     }
   }
+}
+
+interface DiagramViewProps extends ExtendedBlockProps {
+  isRunning: boolean;
+  isFinished: boolean;
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
 }
 
 // Diagram view implementation
@@ -346,12 +354,7 @@ function DiagramView({
   setIsHovered,
   hideConnectors,
   customResultRenderer,
-}: ExtendedBlockProps & {
-  isRunning: boolean;
-  isFinished: boolean;
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
-}) {
+}: DiagramViewProps) {
   const isError = state === "error";
 
   return (
@@ -454,7 +457,7 @@ function DiagramView({
               isCompact ? "flex" : ""
             }`}
           >
-            {customResultRenderer(result)}
+            {customResultRenderer(result, isCompact)}
           </div>
         );
       }
@@ -493,7 +496,7 @@ function DiagramView({
       if (customResultRenderer) {
         return (
           <div className="border-t border-gray-100 p-2 text-xs bg-gray-50">
-            {customResultRenderer(result)}
+            {customResultRenderer(result, isCompact)}
           </div>
         );
       }

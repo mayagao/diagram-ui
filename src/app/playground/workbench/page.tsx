@@ -138,7 +138,7 @@ export default function NotebookWorkflowPage() {
     return (
       <div key={group.id} className="relative">
         <div className="space-y-4">
-          {group.blocks.map((blockId, index) => {
+          {group.blocks.map((blockId) => {
             // Find the block data by ID
             let foundBlockType: BlockType | null = null;
             let foundBlockIndex = -1;
