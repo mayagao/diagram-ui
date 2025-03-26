@@ -10,6 +10,8 @@ export type BlockState = "idle" | "running" | "finished" | "error";
 export interface Position {
   x: number;
   y: number;
+  row?: number;
+  column?: number;
 }
 
 export interface Block {

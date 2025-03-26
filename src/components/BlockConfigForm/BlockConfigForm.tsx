@@ -1,37 +1,73 @@
-import { BlockType } from "../../types/diagram";
+import { useState } from "react";
+import { BlockType } from "@/types/diagram";
 import { useDiagramStore } from "../../store/useDiagramStore";
 import { Card } from "@/components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BlockConfigFormProps {
   blockId: string;
 }
 
 // Configuration fields for each block type
-const blockTypeConfigs: Record<
+const blockConfigs: Record<
   BlockType,
   { fields: { key: string; label: string; type: string }[] }
 > = {
-  processor: {
+  trigger: {
     fields: [
       { key: "name", label: "Name", type: "text" },
-      { key: "inputFormat", label: "Input Format", type: "text" },
-      { key: "processingType", label: "Processing Type", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "apiEndpoint", label: "API Endpoint", type: "text" },
+      { key: "method", label: "Method", type: "select" },
     ],
   },
-  transformer: {
+  extraction: {
     fields: [
       { key: "name", label: "Name", type: "text" },
-      { key: "transformationType", label: "Transformation Type", type: "text" },
-      { key: "outputFormat", label: "Output Format", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "source", label: "Source", type: "select" },
+      { key: "fields", label: "Fields to Extract", type: "textarea" },
     ],
   },
-  output: {
+  generation: {
     fields: [
       { key: "name", label: "Name", type: "text" },
-      { key: "destination", label: "Destination", type: "text" },
-      { key: "format", label: "Format", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "template", label: "Template", type: "textarea" },
+      { key: "outputFormat", label: "Output Format", type: "select" },
+    ],
+  },
+  condition: {
+    fields: [
+      { key: "name", label: "Name", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "condition", label: "Condition", type: "textarea" },
+      { key: "trueBranch", label: "True Branch", type: "text" },
+      { key: "falseBranch", label: "False Branch", type: "text" },
+    ],
+  },
+  action: {
+    fields: [
+      { key: "name", label: "Name", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "actionType", label: "Action Type", type: "select" },
+      { key: "parameters", label: "Parameters", type: "textarea" },
+    ],
+  },
+  end: {
+    fields: [
+      { key: "name", label: "Name", type: "text" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "finalState", label: "Final State", type: "select" },
     ],
   },
 };
@@ -41,34 +77,108 @@ export function BlockConfigForm({ blockId }: BlockConfigFormProps) {
     state.blocks.find((b) => b.id === blockId)
   );
   const updateBlockConfig = useDiagramStore((state) => state.updateBlockConfig);
+  const [config, setConfig] = useState<Record<string, string>>({});
 
   if (!block) return null;
 
-  const config = blockTypeConfigs[block.type];
-
-  const handleConfigChange = (key: string, value: string) => {
-    updateBlockConfig(blockId, { [key]: value });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateBlockConfig(blockId, config);
   };
+
+  const handleChange = (key: string, value: string) => {
+    setConfig((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const fields = blockConfigs[block.type].fields;
 
   return (
     <Card className="p-4">
       <h3 className="font-medium mb-4">Configure {block.type}</h3>
-      <div className="space-y-4">
-        {config.fields.map((field) => (
-          <div key={field.key}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {fields.map((field) => (
+          <div key={field.key} className="space-y-2">
             <Label htmlFor={field.key}>{field.label}</Label>
-            <Input
-              id={field.key}
-              type={field.type}
-              value={(block.config[field.key] as string) || ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleConfigChange(field.key, e.target.value)
-              }
-              className="mt-1"
-            />
+            {field.type === "textarea" ? (
+              <Textarea
+                id={field.key}
+                value={config[field.key] || ""}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  handleChange(field.key, e.target.value)
+                }
+              />
+            ) : field.type === "select" ? (
+              <Select
+                value={config[field.key] || ""}
+                onValueChange={(value: string) =>
+                  handleChange(field.key, value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={`Select ${field.label.toLowerCase()}`}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.key === "method" && (
+                    <>
+                      <SelectItem value="GET">GET</SelectItem>
+                      <SelectItem value="POST">POST</SelectItem>
+                      <SelectItem value="PUT">PUT</SelectItem>
+                      <SelectItem value="DELETE">DELETE</SelectItem>
+                    </>
+                  )}
+                  {field.key === "source" && (
+                    <>
+                      <SelectItem value="api">API</SelectItem>
+                      <SelectItem value="database">Database</SelectItem>
+                      <SelectItem value="file">File</SelectItem>
+                    </>
+                  )}
+                  {field.key === "outputFormat" && (
+                    <>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="text">Text</SelectItem>
+                      <SelectItem value="html">HTML</SelectItem>
+                    </>
+                  )}
+                  {field.key === "actionType" && (
+                    <>
+                      <SelectItem value="sendEmail">Send Email</SelectItem>
+                      <SelectItem value="updateDatabase">
+                        Update Database
+                      </SelectItem>
+                      <SelectItem value="callApi">Call API</SelectItem>
+                    </>
+                  )}
+                  {field.key === "finalState" && (
+                    <>
+                      <SelectItem value="success">Success</SelectItem>
+                      <SelectItem value="error">Error</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                id={field.key}
+                type={field.type}
+                value={config[field.key] || ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleChange(field.key, e.target.value)
+                }
+              />
+            )}
           </div>
         ))}
-      </div>
+        <button
+          type="submit"
+          className="w-full rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/90"
+        >
+          Save Configuration
+        </button>
+      </form>
     </Card>
   );
 }
