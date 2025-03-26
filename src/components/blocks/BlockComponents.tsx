@@ -52,8 +52,6 @@ export function BlockIcon({
     switch (state) {
       case "running":
         return "#2563eb"; // blue-600
-      case "finished":
-        return "#16a34a"; // green-600
       case "error":
         return "#dc2626"; // red-600
       default:
@@ -64,20 +62,14 @@ export function BlockIcon({
   return (
     <div
       className={`
-   
-        ${isCompact ? "w-5 h-5" : "w-5 h-5"} 
+        w-5 h-5
         rounded 
         flex items-center justify-center
         flex-shrink-0
         ${isCompact ? "my-auto" : ""}
       `}
     >
-      {Icon && (
-        <Icon
-          className={isCompact ? "w-5 h-5" : "w-5 h-5"}
-          style={{ color: getIconColor() }}
-        />
-      )}
+      {Icon && <Icon className="w-5 h-5" style={{ color: getIconColor() }} />}
     </div>
   );
 }
@@ -196,7 +188,7 @@ export function NotebookBlock({
     state === "running"
       ? "border-blue-400 animate-pulse-border"
       : state === "error"
-      ? "border-red-400"
+      ? "border-red-200"
       : "border-gray-200";
 
   // Background color based on state
@@ -221,8 +213,7 @@ export function NotebookBlock({
     <div
       className={`
         w-full 
-        ${isCompact ? "min-h-[52px]" : "min-h-[80px]"}
-        p-3
+        ${isCompact ? "min-h-[52px]" : ""}
         ${bgClass}
         border 
         ${borderClass}
@@ -234,30 +225,22 @@ export function NotebookBlock({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className={`flex flex-col gap-1`}>
+      <div className={`pt-2`}>
         {/* Header with icon and title always in one row */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-2 pb-1 ">
           {Icon && (
             <div
-              className={`${
-                isCompact ? "w-5 h-5" : "w-6 h-6"
-              } rounded-md flex items-center justify-center flex-shrink-0`}
+              className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0`}
             >
               <Icon className="text-gray-500" />
             </div>
           )}
-          <h3
-            className={`font-medium text-gray-800 ${
-              isCompact ? "text-sm" : ""
-            }`}
-          >
-            {title}
-          </h3>
+          <h3 className={`font-medium text-gray-800 text-sm`}>{title}</h3>
         </div>
-
-        {/* Content below the header - even in compact mode */}
-        <div className="w-full">
-          {typeof children === "function" ? children(isHovered) : children}
+        <div>
+          <div className="w-full text-xs">
+            {typeof children === "function" ? children(isHovered) : children}
+          </div>
         </div>
       </div>
     </div>

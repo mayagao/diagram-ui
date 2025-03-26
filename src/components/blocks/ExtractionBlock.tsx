@@ -55,7 +55,7 @@ const ExtractionBlock: React.FC<ExtractionBlockProps> = (props) => {
     const topFields = filteredData.slice(0, 3);
 
     return (
-      <div className="">
+      <div className="w-full">
         <div className="text-xs text-gray-500 mb-1">
           {totalFields} fields extracted
         </div>

@@ -10,6 +10,7 @@ import ActionBlock from "@/components/blocks/ActionBlock";
 import { workflowBlocks } from "@/data/workflowBlocks";
 import { BlockState } from "@/types/blocks";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
+import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 
 export default function NotebookPage() {
   const [isCompact, setIsCompact] = useState(true);
@@ -22,11 +23,29 @@ export default function NotebookPage() {
   // Rotate through running actions for dynamic demonstration
   useEffect(() => {
     const interval = setInterval(() => {
-      setRunningActionIndex((prev) => (prev + 1) % 3); // Assuming 3 actions per block
-    }, 2000); // Change action every 2 seconds
+      setRunningActionIndex((prev) => (prev + 1) % 3);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
+
+  // Get the appropriate block component based on type
+  const getBlockComponent = (type: BlockType) => {
+    switch (type) {
+      case "trigger":
+        return TriggerBlock;
+      case "extraction":
+        return ExtractionBlock;
+      case "condition":
+        return ConditionBlock;
+      case "generation":
+        return GenerationBlock;
+      case "action":
+        return ActionBlock;
+      default:
+        return TriggerBlock;
+    }
+  };
 
   // Get current running action for a specific block type
   const getCurrentAction = (type: string, index: number) => {
@@ -223,81 +242,21 @@ export default function NotebookPage() {
       />
 
       <div className="p-8">
-        <div className="max-w-7xl mx-auto space-y-12">
-          {/* Trigger Blocks Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Trigger Blocks</h2>
-              <p className="text-gray-600">
-                Trigger blocks are the starting points of your workflow. They
-                initiate workflows based on specific events or conditions like
-                schedule, webhook, or manual triggers.
-              </p>
+        <div className="max-w-7xl mx-auto space-y-12 text-sm ">
+          {BLOCK_DEFINITIONS.blockTypes.map((blockType) => (
+            <div key={blockType.type} className="grid grid-cols-3 gap-6">
+              <div className="mb-6 col-span-1">
+                <h2 className=" font-semibold mb-2">{blockType.name}</h2>
+                <p className="text-gray-600">{blockType.description}</p>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-lg col-span-2">
+                {renderBlockStates(
+                  getBlockComponent(blockType.type),
+                  blockType.type
+                )}
+              </div>
             </div>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(TriggerBlock, "trigger")}
-            </div>
-          </div>
-
-          {/* Extraction Blocks Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Extraction Blocks</h2>
-              <p className="text-gray-600">
-                Extraction blocks help you pull specific data from various
-                sources. They can parse text, extract structured data, and
-                transform information into usable formats.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(ExtractionBlock, "extraction")}
-            </div>
-          </div>
-
-          {/* Rules Blocks Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Rules Blocks</h2>
-              <p className="text-gray-600">
-                Rules blocks allow you to define conditions and logic for your
-                workflow. They help you make decisions based on extracted data
-                and control the flow of your automation.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(ConditionBlock, "rules")}
-            </div>
-          </div>
-
-          {/* Generation Blocks Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Generation Blocks</h2>
-              <p className="text-gray-600">
-                Generation blocks leverage AI to create new content based on
-                your inputs. They can generate text, analyze data, and provide
-                intelligent responses.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(GenerationBlock, "generation")}
-            </div>
-          </div>
-
-          {/* Action Blocks Section */}
-          <div>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Action Blocks</h2>
-              <p className="text-gray-600">
-                Action blocks execute specific tasks in your workflow. They can
-                send emails, make API calls, update databases, or perform other
-                operations based on your workflow's logic.
-              </p>
-            </div>
-            <div className="bg-gray-50 p-6 rounded-lg">
-              {renderBlockStates(ActionBlock, "action")}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

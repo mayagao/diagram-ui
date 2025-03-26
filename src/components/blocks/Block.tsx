@@ -159,7 +159,11 @@ function NotebookView({
             />
           </div>
 
-          <div className="relative flex gap-2">
+          <div
+            className={`relative flex gap-2 text-xs ${
+              isCompact ? "px-2 pb-2" : ""
+            }`}
+          >
             <div className="flex-grow">{renderNotebookContent()}</div>
           </div>
         </>
@@ -173,7 +177,7 @@ function NotebookView({
       // Add paused state handling for compact mode
       if (state === "paused" && runningAction) {
         return (
-          <div className="text-xs text-gray-600 flex items-center gap-1 bg-gray-50">
+          <div className="text-gray-600 flex items-center">
             <span className="truncate">{runningAction}</span>
           </div>
         );
@@ -207,29 +211,36 @@ function NotebookView({
       }
 
       // Default state - show description
-      return (
-        <div className="text-xs text-gray-600 rounded-md overflow-hidden whitespace-nowrap text-ellipsis w-full">
-          {description}
-        </div>
-      );
+      return <div className="text-gray-600 truncate">{description}</div>;
     } else {
       // Non-compact mode
       return (
         <>
-          <p className="text-sm text-gray-600">{description}</p>
-          {state === "paused" && runningAction && (
-            <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs flex items-center gap-2">
+          <p className="text-gray-600 px-2 pb-2">
+            {state === "paused" && <span>Paused</span>}
+            {description}
+          </p>
+          {runningAction && (
+            <div
+              className={`${
+                state === "paused"
+                  ? "bg-gray-50 text-gray-600"
+                  : "bg-blue-100 text-blue-800"
+              } px-2 py-1 border-t border-gray-200`}
+            >
               <span className="truncate">{runningAction}</span>
             </div>
           )}
           {isFinished && result && (
-            <>
+            <div
+              className={`px-2 py-1 flex justify-between bg-gray-50 border-t border-gray-200 text-xs `}
+            >
               {customResultRenderer ? (
                 customResultRenderer(result)
               ) : (
                 <OutputResult type={type} result={result} />
               )}
-            </>
+            </div>
           )}
         </>
       );
@@ -410,7 +421,7 @@ function DiagramView({
 
       // Otherwise use default rendering
       return (
-        <div className={` text-xs `}>
+        <div className={`text-xs `}>
           <div className="p-2 line-clamp-2">{result.summary}</div>
           {result.data && <div className="">{renderData(result.data)}</div>}
         </div>

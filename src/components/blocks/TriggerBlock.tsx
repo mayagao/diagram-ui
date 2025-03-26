@@ -110,7 +110,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
 
     // Regular detailed view
     return (
-      <div className="text-xs">
+      <>
         <div className="font-medium text-gray-800">
           {filename || "Untitled Document"}
         </div>
@@ -121,7 +121,7 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
             {pageCount ? `${pageCount} page${pageCount !== 1 ? "s" : ""}` : ""}
           </span>
         </div>
-      </div>
+      </>
     );
   };
 
