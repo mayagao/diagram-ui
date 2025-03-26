@@ -42,9 +42,9 @@ interface ConnectorProps {
 
 // Icon container component
 export function BlockIcon({
-  _color: color,
+  color,
   icon: Icon,
-  _type: type,
+  type,
   isCompact = false,
   state = "idle",
 }: IconProps & { state?: string }) {
@@ -83,7 +83,7 @@ export function InputConnector({}: ConnectorProps) {
   );
 }
 
-export function OutputConnector({ _isLoading: isLoading }: ConnectorProps) {
+export function OutputConnector({ isLoading }: ConnectorProps) {
   return (
     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
       <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />

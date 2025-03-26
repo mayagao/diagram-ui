@@ -15,8 +15,6 @@ import {
   OutputResult,
   NotebookBlock,
 } from "./BlockComponents";
-import { Spinner } from "@/components/ui/spinner";
-import { ReactNode } from "react";
 import { ActionArea } from "./BlockComponents/ActionArea";
 
 interface ExtendedBlockProps extends BlockProps {
@@ -39,7 +37,7 @@ interface ExtendedBlockProps extends BlockProps {
 const pulseAnimation = `
 `;
 
-const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
+const getStateStyles = (state: BlockState) => {
   switch (state) {
     case "running":
       return "border-1 border-blue-100 animate-pulse-border bg-blue-50";
@@ -57,25 +55,25 @@ const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
 export default function Block(props: ExtendedBlockProps) {
   const [isHovered, setIsHovered] = useState(false);
   const {
-    _type: type,
+    type,
     title,
-    _description: description,
+    description,
     state = "idle",
-    _inputs: inputs = 0,
-    _outputs: outputs = 0,
-    _color: color,
-    icon: _Icon,
-    _size: size = "default",
+    inputs = 0,
+    outputs = 0,
+    color,
+    icon: Icon,
+    size = "default",
     isInDiagram = true,
     isInNotebook = false,
     isCompact = false,
-    _runningAction: runningAction,
-    _result: result,
-    _errorMessage: errorMessage,
+    runningAction,
+    result,
+    errorMessage,
     onRun,
     onPause,
     onRerun,
-    _customResultRenderer: customResultRenderer,
+    customResultRenderer,
     hideConnectors,
   } = props;
 
@@ -84,32 +82,55 @@ export default function Block(props: ExtendedBlockProps) {
 
   const isRunning = state === "running";
   const isFinished = state === "finished";
-  const isError = state === "error";
 
   return (
     <>
       <style>{pulseAnimation}</style>
       {isInNotebook ? (
         <NotebookView
-          {...props}
+          title={title}
+          description={description}
+          type={type}
+          state={state}
+          color={color}
+          icon={Icon}
+          isCompact={isCompact}
+          runningAction={runningAction}
+          result={result}
+          errorMessage={errorMessage}
+          onRun={onRun}
+          onPause={onPause}
+          onRerun={onRerun}
+          customResultRenderer={customResultRenderer}
           isHovered={isHovered}
           setIsHovered={setIsHovered}
           isRunning={isRunning}
           isFinished={isFinished}
-          onRun={onRun}
-          onPause={onPause}
-          onRerun={onRerun}
         />
       ) : (
         <DiagramView
-          {...props}
-          isHovered={isHovered}
-          setIsHovered={setIsHovered}
+          title={title}
+          description={description}
+          type={type}
+          state={state}
+          color={color}
+          icon={Icon}
+          inputs={inputs}
+          outputs={outputs}
+          size={size}
+          isCompact={isCompact}
           isRunning={isRunning}
           isFinished={isFinished}
+          runningAction={runningAction}
+          result={result}
+          errorMessage={errorMessage}
           onRun={onRun}
           onPause={onPause}
           onRerun={onRerun}
+          isHovered={isHovered}
+          setIsHovered={setIsHovered}
+          hideConnectors={hideConnectors}
+          customResultRenderer={customResultRenderer}
         />
       )}
     </>
@@ -132,10 +153,13 @@ function NotebookView({
   onPause,
   onRerun,
   customResultRenderer,
+  isHovered,
+  setIsHovered,
+  isRunning,
+  isFinished,
 }: ExtendedBlockProps) {
   // Add state variables at the top of the component
   const isError = state === "error";
-  const isFinished = state === "finished";
 
   return (
     <NotebookBlock
@@ -259,6 +283,7 @@ function DiagramView({
   icon: Icon,
   inputs = 0,
   outputs = 0,
+  size = "default",
   isCompact = false,
   isRunning,
   isFinished,
@@ -291,7 +316,7 @@ function DiagramView({
           w-64
           min-h-[52px]
           rounded-md
-          ${getStateStyles(state, color)} 
+          ${getStateStyles(state)} 
           transition-all duration-200
           ${isRunning ? "bg-blue-50" : ""}
           flex flex-col 

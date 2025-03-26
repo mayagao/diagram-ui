@@ -43,13 +43,29 @@ export default function GenerationBlock({
   ) => {
     if (!result || !result.data) return null;
 
-    const { documentName } = result.data;
+    // Extract the text data if it exists
+    let generatedText: string | undefined;
+    let tokens: number | undefined;
+
+    if (result.data.text && typeof result.data.text === "string") {
+      generatedText = result.data.text;
+    }
+    if (result.data.tokens && typeof result.data.tokens === "number") {
+      tokens = result.data.tokens;
+    }
+
+    // Handle event with proper typing
+    const handleCopy = (_e: React.MouseEvent<HTMLButtonElement>) => {
+      if (generatedText) {
+        navigator.clipboard.writeText(generatedText);
+      }
+    };
 
     // For compact mode, just show the document name
     if (isCompact) {
       return (
         <div className="text-xs text-gray-700 truncate">
-          {documentName || "Generated Document"}
+          {result.data.documentName || "Generated Document"}
         </div>
       );
     }
@@ -61,7 +77,7 @@ export default function GenerationBlock({
     return (
       <div className=" text-xs">
         <div className="font-medium text-gray-800">
-          {documentName || "Generated Document"}
+          {result.data.documentName || "Generated Document"}
         </div>
 
         {topSections.length > 0 && (

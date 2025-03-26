@@ -38,7 +38,7 @@ export function ActionArea({
     icon: React.ReactNode,
     tooltipText: string,
     onClick?: () => void,
-    _bgClass: string = ""
+    _bgClass = ""
   ) => (
     <Tooltip delayDuration={100}>
       <TooltipTrigger asChild>

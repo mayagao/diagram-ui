@@ -130,7 +130,7 @@ export default function BlocksDemo() {
     setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
   };
 
-  const renderBlockStates = <T extends Record<string, unknown>>(
+  const renderBlockStates = <T,>(
     BlockComponent: React.ComponentType<T>,
     type: string,
     index: number = 0
@@ -138,12 +138,14 @@ export default function BlocksDemo() {
     <div className="space-y-6">
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onRun={() => handleRun(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            isInNotebook: false,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRun: () => handleRun(`${type}-${index}`),
+          } as T)}
         />
         <div className="text-xs mx-auto text-center mt-1 text-gray-500">
           Default

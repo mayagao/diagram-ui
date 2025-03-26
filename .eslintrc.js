@@ -11,4 +11,12 @@ module.exports = {
     ],
     "@typescript-eslint/no-explicit-any": "warn",
   },
+  ignorePatterns: [
+    ".next/",
+    "out/",
+    "build/",
+    "dist/",
+    "node_modules/",
+    ".vercel",
+  ],
 };
