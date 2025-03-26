@@ -8,7 +8,7 @@ interface ActionBlockProps {
   description?: string;
   state?: "idle" | "running" | "finished" | "error";
   size?: "compact" | "default";
-  isInDiagram?: boolean;
+  _isInDiagram?: boolean;
   isInNotebook?: boolean;
   runningAction?: string;
   result?: BlockResult;
@@ -68,7 +68,7 @@ const ActionBlock: React.FC<ActionBlockProps> = (props) => {
       color={BLOCK_COLORS.action}
       icon={BoltIcon}
       size={props.size}
-      isInDiagram={props.isInDiagram}
+      _isInDiagram={props._isInDiagram}
       isInNotebook={props.isInNotebook}
       isCompact={props.isCompact}
       runningAction={props.runningAction}

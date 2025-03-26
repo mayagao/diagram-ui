@@ -26,7 +26,7 @@ interface NotebookBlockProps {
     dark: string;
   };
   icon: React.FC<React.SVGProps<SVGSVGElement>>;
-  children?: ReactNode;
+  children?: ReactNode | ((isHovered: boolean) => React.ReactNode);
   state?: string;
 }
 
@@ -46,7 +46,7 @@ export function BlockIcon({
   color: _color,
   icon: Icon,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type: _type,
+  type: _type = "trigger",
   isCompact = false,
   state = "idle",
 }: IconProps & { state?: string }) {
@@ -146,7 +146,7 @@ export function RunningBlock({
 // Output results component
 export function OutputResult({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type: _type,
+  type: _type = "trigger",
   result,
   isCompact = false,
 }: OutputResultProps & { isCompact?: boolean }) {

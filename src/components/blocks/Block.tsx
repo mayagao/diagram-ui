@@ -1,4 +1,4 @@
-import { BlockProps, BlockResult, BlockState } from "@/types/blocks";
+import { BlockProps, BlockResult, BlockState, BlockType } from "@/types/blocks";
 import {
   ArrowDownCircleIcon, // for Trigger
   DocumentArrowDownIcon, // for Extraction
@@ -17,9 +17,19 @@ import {
 } from "./BlockComponents";
 import { ActionArea } from "./BlockComponents/ActionArea";
 
-interface ExtendedBlockProps extends BlockProps {
+interface BlockColor {
+  light: string;
+  medium: string;
+  dark: string;
+}
+
+interface ExtendedBlockProps extends Omit<BlockProps, "type"> {
+  id?: string;
   icon?: React.FC<React.SVGProps<SVGSVGElement>>;
   description: string;
+  type: BlockType;
+  title: string;
+  color: BlockColor;
   size?: "compact" | "default";
   _isInDiagram?: boolean;
   isInNotebook?: boolean;
@@ -64,8 +74,6 @@ export default function Block(props: ExtendedBlockProps) {
     color,
     icon: Icon,
     size = "default",
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _isInDiagram = true,
     isInNotebook = false,
     isCompact = false,
     runningAction,
@@ -89,11 +97,11 @@ export default function Block(props: ExtendedBlockProps) {
       <style>{pulseAnimation}</style>
       {isInNotebook ? (
         <NotebookView
-          title={title}
-          description={description}
-          type={type}
+          title={title || ""}
+          description={description || ""}
+          type={type || "trigger"}
           state={state}
-          color={color}
+          color={color || { light: "", medium: "", dark: "" }}
           icon={Icon}
           isCompact={isCompact}
           runningAction={runningAction}
@@ -110,11 +118,11 @@ export default function Block(props: ExtendedBlockProps) {
         />
       ) : (
         <DiagramView
-          title={title}
-          description={description}
-          type={type}
+          title={title || ""}
+          description={description || ""}
+          type={type || "trigger"}
           state={state}
-          color={color}
+          color={color || { light: "", medium: "", dark: "" }}
           icon={Icon}
           inputs={inputs}
           outputs={outputs}
@@ -176,12 +184,12 @@ function NotebookView({
       title={title}
       description={description}
       color={color}
-      icon={Icon}
+      icon={Icon || (() => null)}
       isCompact={isCompact}
       state={state || "idle"}
       className="hover:shadow-md cursor-pointer"
     >
-      {(hoverState: boolean) => (
+      {(hoverState: boolean): React.ReactNode => (
         <>
           <div className="absolute top-3 right-3">
             <ActionArea
@@ -267,7 +275,7 @@ function NotebookView({
           )}
           {isFinished && result && (
             <div
-              className={`px-2 py-1 flex justify-between bg-gray-50 border-t border-gray-200 text-xs `}
+              className={`px-2 py-1  bg-gray-50 border-t border-gray-200 text-xs `}
             >
               {customResultRenderer ? (
                 customResultRenderer(result)
@@ -476,7 +484,9 @@ function DiagramView({
 }
 
 // Helper function to get background colors based on block type
-function getBgColorByType(type: string) {
+function getBgColorByType(type: string | undefined) {
+  if (!type) return "bg-gray-50 border-gray-200 text-gray-700";
+
   switch (type) {
     case "trigger":
       return "bg-blue-50 border-blue-200 text-blue-700";
