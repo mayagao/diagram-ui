@@ -108,10 +108,6 @@ const ConditionBlock: React.FC<ConditionBlockProps> = (props) => {
     }
 
     const rulesDetails = Array.isArray(details) ? details.slice(0, 3) : [];
-    const totalRules =
-      typeof result.data.totalRules === "number"
-        ? result.data.totalRules
-        : details.length || 0;
 
     // Count rules by status
     const passedRules = rulesDetails.filter(
