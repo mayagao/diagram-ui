@@ -14,7 +14,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 
 interface ActionAreaProps {
   state: BlockState;
@@ -39,7 +38,7 @@ export function ActionArea({
     icon: React.ReactNode,
     tooltipText: string,
     onClick?: () => void,
-    bgClass: string = ""
+    _bgClass: string = ""
   ) => (
     <Tooltip delayDuration={100}>
       <TooltipTrigger asChild>
@@ -104,8 +103,7 @@ export function ActionArea({
         return renderTooltipButton(
           <PauseIcon className={`${iconClasses} text-gray-600`} />,
           "Pause execution",
-          onPause,
-          "bg-gray-100 hover:bg-gray-200"
+          onPause
         );
       case "paused":
       case "idle":

@@ -32,13 +32,15 @@ interface BaseBlockProps {
   onRerun?: () => void;
 }
 
-export interface TriggerBlockProps extends BaseBlockProps {
-  // ... any trigger-specific props
-}
+export type TriggerBlockProps = BaseBlockProps & {
+  color?: {
+    light: string;
+    medium: string;
+    dark: string;
+  };
+};
 
-export interface ExtractionBlockProps extends BaseBlockProps {
-  // ... any extraction-specific props
-}
+export type ExtractionBlockProps = BaseBlockProps;
 
 export interface BlockProps {
   type: BlockType;

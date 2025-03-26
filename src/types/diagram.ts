@@ -14,7 +14,7 @@ export interface Block {
   state: BlockState;
   inputs: string[]; // IDs of connected input blocks
   outputs: string[]; // IDs of connected output blocks
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 export interface Connection {

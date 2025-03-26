@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { BlockProps, BlockType, BlockResult } from "@/types/blocks";
+import { BlockType, BlockResult } from "@/types/blocks";
 import { Spinner } from "@/components/ui/spinner";
 import { useState } from "react";
 
@@ -42,9 +42,9 @@ interface ConnectorProps {
 
 // Icon container component
 export function BlockIcon({
-  color,
+  _color: color,
   icon: Icon,
-  type,
+  _type: type,
   isCompact = false,
   state = "idle",
 }: IconProps & { state?: string }) {
@@ -83,7 +83,7 @@ export function InputConnector({}: ConnectorProps) {
   );
 }
 
-export function OutputConnector({ isLoading }: ConnectorProps) {
+export function OutputConnector({ _isLoading: isLoading }: ConnectorProps) {
   return (
     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
       <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />
@@ -122,7 +122,7 @@ export function BlockContent({
 // Running indicator component
 export function RunningBlock({
   action,
-  isCompact = false,
+  _isCompact: isCompact = false,
 }: {
   action: string;
   isCompact?: boolean;
@@ -139,7 +139,7 @@ export function RunningBlock({
 
 // Output results component
 export function OutputResult({
-  type,
+  _type: type,
   result,
   isCompact = false,
 }: OutputResultProps & { isCompact?: boolean }) {
@@ -164,10 +164,10 @@ export function OutputResult({
 
 // Notebook-specific block styling
 export function NotebookBlock({
-  type,
+  _type: type,
   title,
-  description,
-  color,
+  _description: description,
+  _color: color,
   icon: Icon,
   isCompact = false,
   children,
@@ -239,7 +239,9 @@ export function NotebookBlock({
         </div>
         <div>
           <div className="w-full text-xs">
-            {typeof children === "function" ? children(isHovered) : children}
+            {typeof children === "function"
+              ? (children as (isHovered: boolean) => React.ReactNode)(isHovered)
+              : children}
           </div>
         </div>
       </div>

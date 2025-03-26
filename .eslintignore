@@ -1,0 +1,11 @@
+# Build artifacts
+.next/
+out/
+build/
+dist/
+
+# Node modules
+node_modules/
+
+# Other files to ignore
+.vercel 

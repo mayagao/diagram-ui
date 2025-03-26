@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
 
 export default function WorkbenchPage() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [,] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
 
   return (

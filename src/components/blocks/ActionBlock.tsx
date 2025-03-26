@@ -1,6 +1,6 @@
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
-import { BoltIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { BoltIcon } from "@heroicons/react/24/outline";
 import { BlockResult } from "@/types/blocks";
 
 interface ActionBlockProps {

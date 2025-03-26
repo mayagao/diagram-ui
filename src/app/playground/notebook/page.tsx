@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import TriggerBlock from "@/components/blocks/TriggerBlock";
 import ExtractionBlock from "@/components/blocks/ExtractionBlock";
 import GenerationBlock from "@/components/blocks/GenerationBlock";
@@ -15,10 +14,7 @@ import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 export default function NotebookPage() {
   const [isCompact, setIsCompact] = useState(true);
   const [runningActionIndex, setRunningActionIndex] = useState(0);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [blockStates, setBlockStates] = useState<Record<string, BlockState>>(
-    {}
-  );
+  const [, setBlockStates] = useState<Record<string, BlockState>>({});
 
   // Rotate through running actions for dynamic demonstration
   useEffect(() => {
@@ -243,20 +239,26 @@ export default function NotebookPage() {
 
       <div className="p-8">
         <div className="max-w-7xl mx-auto space-y-12 text-sm ">
-          {BLOCK_DEFINITIONS.blockTypes.map((blockType) => (
-            <div key={blockType.type} className="grid grid-cols-3 gap-6">
-              <div className="mb-6 col-span-1">
-                <h2 className=" font-semibold mb-2">{blockType.name}</h2>
-                <p className="text-gray-600">{blockType.description}</p>
+          {BLOCK_DEFINITIONS.blockTypes.map(
+            (blockType: {
+              type: BlockType;
+              name: string;
+              description: string;
+            }) => (
+              <div key={blockType.type} className="grid grid-cols-3 gap-6">
+                <div className="mb-6 col-span-1">
+                  <h2 className=" font-semibold mb-2">{blockType.name}</h2>
+                  <p className="text-gray-600">{blockType.description}</p>
+                </div>
+                <div className="bg-gray-50 p-6 rounded-lg col-span-2">
+                  {renderBlockStates(
+                    getBlockComponent(blockType.type),
+                    blockType.type
+                  )}
+                </div>
               </div>
-              <div className="bg-gray-50 p-6 rounded-lg col-span-2">
-                {renderBlockStates(
-                  getBlockComponent(blockType.type),
-                  blockType.type
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </div>
     </div>

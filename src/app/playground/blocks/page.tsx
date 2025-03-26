@@ -8,15 +8,15 @@ import ConditionBlock from "@/components/blocks/ConditionBlock";
 import ActionBlock from "@/components/blocks/ActionBlock";
 import { workflowBlocks } from "@/data/workflowBlocks";
 import { BlockState } from "@/types/blocks";
-import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
+// @ts-expect-error Comment explaining why this import is needed
+// import { BlockType } from '...';
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
+import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 
 export default function BlocksDemo() {
   const [isCompact, setIsCompact] = useState(true);
   const [runningActionIndex, setRunningActionIndex] = useState(0);
-  const [blockStates, setBlockStates] = useState<Record<string, BlockState>>(
-    {}
-  );
+  const [, setBlockStates] = useState<Record<string, BlockState>>({});
 
   // Rotate through running actions for dynamic demonstration
   useEffect(() => {
@@ -56,12 +56,19 @@ export default function BlocksDemo() {
     if (blockType === "rules" && errorData && "details" in errorData) {
       const details = errorData.details as unknown[];
       const failedRule = details?.find(
-        (detail: Record<string, unknown>) => detail.status === "failed"
-      );
+        (detail) =>
+          typeof detail === "object" &&
+          detail !== null &&
+          "status" in detail &&
+          detail.status === "failed"
+      ) as Record<string, unknown> | undefined;
+
       if (failedRule) {
         return (
-          (failedRule.message as string) ||
-          `Rule validation failed: ${failedRule.rule as string}`
+          (typeof failedRule.message === "string" ? failedRule.message : "") ||
+          `Rule validation failed: ${
+            typeof failedRule.rule === "string" ? failedRule.rule : ""
+          }`
         );
       }
     }
@@ -123,8 +130,8 @@ export default function BlocksDemo() {
     setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
   };
 
-  const renderBlockStates = (
-    BlockComponent: React.ComponentType<Record<string, unknown>>,
+  const renderBlockStates = <T extends Record<string, unknown>>(
+    BlockComponent: React.ComponentType<T>,
     type: string,
     index: number = 0
   ) => (
@@ -218,29 +225,35 @@ export default function BlocksDemo() {
       />
 
       <div className="p-8 space-y-12 max-w-7xl mx-auto">
-        {BLOCK_DEFINITIONS.blockTypes.map((blockType) => (
-          <div key={blockType.type} className="grid grid-cols-3 gap-6">
-            <div className="mb-4 text-sm col-span-1">
-              <h2 className="font-semibold mb-2">{blockType.name}</h2>
-              <p className="text-gray-600 mb-2 max-w-xl">
-                {blockType.description}
-              </p>
+        {BLOCK_DEFINITIONS.blockTypes.map(
+          (blockType: {
+            type: BlockType;
+            name: string;
+            description: string;
+          }) => (
+            <div key={blockType.type} className="grid grid-cols-3 gap-6">
+              <div className="mb-4 text-sm col-span-1">
+                <h2 className="font-semibold mb-2">{blockType.name}</h2>
+                <p className="text-gray-600 mb-2 max-w-xl">
+                  {blockType.description}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-6 pt-8 rounded-lg mb-12 col-span-2">
+                {/* Map the correct block component based on type */}
+                {blockType.type === "trigger" &&
+                  renderBlockStates(TriggerBlock, "trigger")}
+                {blockType.type === "extraction" &&
+                  renderBlockStates(ExtractionBlock, "extraction")}
+                {blockType.type === "condition" &&
+                  renderBlockStates(ConditionBlock, "condition")}
+                {blockType.type === "generation" &&
+                  renderBlockStates(GenerationBlock, "generation")}
+                {blockType.type === "action" &&
+                  renderBlockStates(ActionBlock, "action")}
+              </div>
             </div>
-            <div className="bg-gray-50 p-6 pt-8 rounded-lg mb-12 col-span-2">
-              {/* Map the correct block component based on type */}
-              {blockType.type === "trigger" &&
-                renderBlockStates(TriggerBlock, "trigger")}
-              {blockType.type === "extraction" &&
-                renderBlockStates(ExtractionBlock, "extraction")}
-              {blockType.type === "condition" &&
-                renderBlockStates(ConditionBlock, "condition")}
-              {blockType.type === "generation" &&
-                renderBlockStates(GenerationBlock, "generation")}
-              {blockType.type === "action" &&
-                renderBlockStates(ActionBlock, "action")}
-            </div>
-          </div>
-        ))}
+          )
+        )}
       </div>
     </div>
   );

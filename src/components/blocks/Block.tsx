@@ -1,4 +1,4 @@
-import { BlockProps, BlockResult } from "@/types/blocks";
+import { BlockProps, BlockResult, BlockState } from "@/types/blocks";
 import {
   ArrowDownCircleIcon, // for Trigger
   DocumentArrowDownIcon, // for Extraction
@@ -12,7 +12,6 @@ import {
   BlockContent,
   InputConnector,
   OutputConnector,
-  RunningBlock,
   OutputResult,
   NotebookBlock,
 } from "./BlockComponents";
@@ -34,6 +33,7 @@ interface ExtendedBlockProps extends BlockProps {
   onPause?: () => void;
   onRerun?: () => void;
   customResultRenderer?: (result: BlockResult) => React.ReactNode;
+  hideConnectors?: boolean;
 }
 
 const pulseAnimation = `
@@ -57,25 +57,26 @@ const getStateStyles = (state: BlockState, color: BlockProps["color"]) => {
 export default function Block(props: ExtendedBlockProps) {
   const [isHovered, setIsHovered] = useState(false);
   const {
-    type,
+    _type: type,
     title,
-    description,
+    _description: description,
     state = "idle",
-    inputs = 0,
-    outputs = 0,
-    color,
-    icon: Icon,
-    size = "default",
+    _inputs: inputs = 0,
+    _outputs: outputs = 0,
+    _color: color,
+    icon: _Icon,
+    _size: size = "default",
     isInDiagram = true,
     isInNotebook = false,
     isCompact = false,
-    runningAction,
-    result,
-    errorMessage,
+    _runningAction: runningAction,
+    _result: result,
+    _errorMessage: errorMessage,
     onRun,
     onPause,
     onRerun,
-    customResultRenderer,
+    _customResultRenderer: customResultRenderer,
+    hideConnectors,
   } = props;
 
   // Add a more visible console log
@@ -467,7 +468,7 @@ export const blockIcons = {
 };
 
 // Inside the renderContent function or wherever you're displaying the data
-const renderData = (data: any) => {
+const renderData = (data: Record<string, unknown>) => {
   if (!data) return null;
 
   return Object.entries(data).map(([key, value]) => {
