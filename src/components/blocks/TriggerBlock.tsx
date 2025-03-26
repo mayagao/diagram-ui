@@ -43,16 +43,6 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
   onPause,
   onRerun,
 }) => {
-  const renderIcon = () => {
-    if (state === "running")
-      return <Spinner className="h-5 w-5 text-blue-500" />;
-    if (state === "finished")
-      return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-    if (state === "error")
-      return <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />;
-    return <ArrowDownCircleIcon className="h-5 w-5 text-gray-400" />;
-  };
-
   const renderContent = () => {
     if (state === "running") {
       return (
