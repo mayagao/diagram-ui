@@ -124,28 +124,17 @@ function NotebookView({
   icon: Icon,
   isCompact = false,
   state,
-  isRunning,
-  isFinished,
   runningAction,
   result,
   errorMessage,
   onRun,
   onPause,
   onRerun,
-  isHovered,
-  setIsHovered,
-  inputs,
-  outputs,
   customResultRenderer,
-}: ExtendedBlockProps & {
-  isRunning: boolean;
-  isFinished: boolean;
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
-  inputs: number;
-  outputs: number;
-}) {
+}: ExtendedBlockProps) {
+  // Add state variables at the top of the component
   const isError = state === "error";
+  const isFinished = state === "finished";
 
   return (
     <NotebookBlock
@@ -156,25 +145,25 @@ function NotebookView({
       icon={Icon}
       isCompact={isCompact}
       state={state}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       className="hover:shadow-md cursor-pointer"
     >
-      <div className="relative flex items-center gap-2">
-        {inputs > 0 && (
-          <div className="flex-shrink-0">
-            <InputConnector isLoading={isRunning} />
+      {(isHovered: boolean) => (
+        <>
+          <div className="absolute top-3 right-3">
+            <ActionArea
+              state={state}
+              isHovered={isHovered}
+              onRun={onRun}
+              onPause={onPause}
+              onRerun={onRerun}
+            />
           </div>
-        )}
 
-        <div className="flex-grow">{renderNotebookContent()}</div>
-
-        {outputs > 0 && (
-          <div className="flex-shrink-0">
-            <OutputConnector isLoading={isRunning} />
+          <div className="relative flex gap-2">
+            <div className="flex-grow">{renderNotebookContent()}</div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </NotebookBlock>
   );
 
@@ -219,7 +208,7 @@ function NotebookView({
 
       // Default state - show description
       return (
-        <div className="text-xs text-gray-600 px-2 py-1 bg-gray-50 rounded-md overflow-hidden whitespace-nowrap text-ellipsis w-full">
+        <div className="text-xs text-gray-600 rounded-md overflow-hidden whitespace-nowrap text-ellipsis w-full">
           {description}
         </div>
       );
@@ -350,7 +339,9 @@ function DiagramView({
 
     // 1. DEFAULT STATE: Show description text
     if (!isRunning && !isFinished && !isError) {
-      return <div className="text-xs text-gray-600">{description}</div>;
+      return (
+        <div className="text-xs text-gray-600 truncate">{description}</div>
+      );
     }
 
     // 2. RUNNING STATE: Show current action with spinner

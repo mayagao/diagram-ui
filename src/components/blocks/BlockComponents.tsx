@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { BlockProps, BlockType, BlockResult } from "@/types/blocks";
 import { Spinner } from "@/components/ui/spinner";
+import { useState } from "react";
 
 // Define component prop types
 interface IconProps {
@@ -179,13 +180,21 @@ export function NotebookBlock({
   isCompact = false,
   children,
   state = "idle",
-}: NotebookBlockProps & { isCompact?: boolean }) {
+  onMouseEnter,
+  onMouseLeave,
+  className,
+}: NotebookBlockProps & {
+  isCompact?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  className?: string;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+
   // Class for pulsing border animation
   const borderClass =
     state === "running"
       ? "border-blue-400 animate-pulse-border"
-      : state === "finished"
-      ? "border-green-100"
       : state === "error"
       ? "border-red-400"
       : "border-gray-200";
@@ -198,6 +207,16 @@ export function NotebookBlock({
       ? "bg-red-50"
       : "bg-white";
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onMouseEnter?.();
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onMouseLeave?.();
+  };
+
   return (
     <div
       className={`
@@ -207,31 +226,24 @@ export function NotebookBlock({
         ${bgClass}
         border 
         ${borderClass}
-        rounded-xl
+        rounded-md
         overflow-hidden
         relative
+        ${className || ""}
       `}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className={`flex flex-col gap-2`}>
+      <div className={`flex flex-col gap-1`}>
         {/* Header with icon and title always in one row */}
         <div className="flex items-center gap-2">
           {Icon && (
             <div
-              className={`${color.light} ${
+              className={`${
                 isCompact ? "w-5 h-5" : "w-6 h-6"
               } rounded-md flex items-center justify-center flex-shrink-0`}
             >
-              <Icon
-                className={isCompact ? "w-3 h-3" : "w-3.5 h-3.5"}
-                style={{
-                  color:
-                    state === "running"
-                      ? "#2563eb" // blue for running
-                      : state === "finished"
-                      ? "#16a34a" // green for finished
-                      : "#64748b", // gray for default
-                }}
-              />
+              <Icon className="text-gray-500" />
             </div>
           )}
           <h3
@@ -244,7 +256,9 @@ export function NotebookBlock({
         </div>
 
         {/* Content below the header - even in compact mode */}
-        <div className="w-full">{children}</div>
+        <div className="w-full">
+          {typeof children === "function" ? children(isHovered) : children}
+        </div>
       </div>
     </div>
   );

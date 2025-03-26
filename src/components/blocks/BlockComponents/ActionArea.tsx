@@ -125,5 +125,5 @@ export function ActionArea({
     }
   };
 
-  return <div className="absolute top-2 right-2">{renderActionButton()}</div>;
+  return <div className="">{renderActionButton()}</div>;
 }
