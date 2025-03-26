@@ -1,70 +1,261 @@
-import Link from "next/link";
+"use client";
+
+import { useState, useEffect } from "react";
+import TriggerBlock from "@/components/blocks/TriggerBlock";
+import ExtractionBlock from "@/components/blocks/ExtractionBlock";
+import GenerationBlock from "@/components/blocks/GenerationBlock";
+import ConditionBlock from "@/components/blocks/ConditionBlock";
+import ActionBlock from "@/components/blocks/ActionBlock";
+import { workflowBlocks } from "@/data/workflowBlocks";
+import { BlockState } from "@/types/blocks";
+// @ts-expect-error Comment explaining why this import is needed
+// import { BlockType } from '...';
+import BreadcrumbHeader from "../components/BreadcrumbHeader";
+import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 
 export default function BlocksDemo() {
+  const [isCompact, setIsCompact] = useState(true);
+  const [runningActionIndex, setRunningActionIndex] = useState(0);
+  const [, setBlockStates] = useState<Record<string, BlockState>>({});
+
+  // Rotate through running actions for dynamic demonstration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRunningActionIndex((prev) => (prev + 1) % 3); // Assuming 3 actions per block
+    }, 2000); // Change action every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Get current running action for a specific block type
+  const getCurrentAction = (type: string, index: number) => {
+    const block = workflowBlocks[type][index];
+    return block.actions?.[runningActionIndex] || "Processing...";
+  };
+
+  // Generate standard error message for a block type
+  const getErrorMessage = (blockType: string) => {
+    // Extract error messages from the mock data if available
+    const errorData = workflowBlocks[blockType][0].result?.data;
+    if (errorData && "error" in errorData && errorData.error) {
+      return String(errorData.error);
+    }
+
+    if (
+      errorData &&
+      "errorMessages" in errorData &&
+      Array.isArray(errorData.errorMessages)
+    ) {
+      return (
+        errorData.errorMessages[0] ||
+        `Failed to initialize ${blockType}: Invalid configuration.`
+      );
+    }
+
+    // For the rules block, use the specific validation error message
+    if (blockType === "rules" && errorData && "details" in errorData) {
+      const details = errorData.details as unknown[];
+      const failedRule = details?.find(
+        (detail) =>
+          typeof detail === "object" &&
+          detail !== null &&
+          "status" in detail &&
+          detail.status === "failed"
+      ) as Record<string, unknown> | undefined;
+
+      if (failedRule) {
+        return (
+          (typeof failedRule.message === "string" ? failedRule.message : "") ||
+          `Rule validation failed: ${
+            typeof failedRule.rule === "string" ? failedRule.rule : ""
+          }`
+        );
+      }
+    }
+
+    return `Failed to initialize ${blockType}: Invalid configuration.`;
+  };
+
+  // Helper to safely format result data to match component expectations
+  const formatResult = (result: unknown) => {
+    if (!result) return undefined;
+
+    const typedResult = result as Record<string, unknown>;
+
+    // Helper to safely stringify any value
+    const safeStringify = (
+      value: unknown
+    ): string | number | boolean | string[] | null => {
+      if (value === null) return null;
+      if (typeof value === "string") return value;
+      if (typeof value === "number") return value;
+      if (typeof value === "boolean") return value;
+      if (Array.isArray(value)) {
+        return value.map((item) =>
+          typeof item === "string" ? item : JSON.stringify(item)
+        );
+      }
+      if (typeof value === "object") {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    };
+
+    // Process the data object to ensure all values are properly stringified
+    const processedData = typedResult.data
+      ? Object.entries(typedResult.data as Record<string, unknown>).reduce(
+          (acc, [key, value]) => {
+            acc[key] = safeStringify(value);
+            return acc;
+          },
+          {} as Record<string, string | number | boolean | string[] | null>
+        )
+      : undefined;
+
+    return {
+      summary: typedResult.summary || "",
+      data: processedData,
+    };
+  };
+
+  const handleRun = (blockId: string) => {
+    setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
+  };
+
+  const handlePause = (blockId: string) => {
+    setBlockStates((prev) => ({ ...prev, [blockId]: "paused" }));
+  };
+
+  const handleRerun = (blockId: string) => {
+    setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
+  };
+
+  const renderBlockStates = <T,>(
+    BlockComponent: React.ComponentType<T>,
+    type: string,
+    index: number = 0
+  ) => (
+    <div className="space-y-6">
+      <div>
+        <BlockComponent
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            isInNotebook: false,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRun: () => handleRun(`${type}-${index}`),
+          } as T)}
+        />
+        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
+          Default
+        </div>
+      </div>
+
+      <div>
+        <BlockComponent
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="running"
+          runningAction={getCurrentAction(type, index)}
+          isInNotebook={false}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onPause={() => handlePause(`${type}-${index}`)}
+        />
+        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
+          Running
+        </div>
+      </div>
+
+      <div>
+        <BlockComponent
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="paused"
+          runningAction={`Analysis paused`}
+          isInNotebook={false}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRun={() => handleRun(`${type}-${index}`)}
+        />
+        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
+          Paused
+        </div>
+      </div>
+
+      <div>
+        <BlockComponent
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="finished"
+          result={formatResult(workflowBlocks[type][index].result)}
+          isInNotebook={false}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRerun={() => handleRerun(`${type}-${index}`)}
+        />
+        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
+          Finished
+        </div>
+      </div>
+
+      <div>
+        <BlockComponent
+          title={workflowBlocks[type][index].title}
+          description={workflowBlocks[type][index].description}
+          state="error"
+          errorMessage={getErrorMessage(type)}
+          isInNotebook={false}
+          isCompact={isCompact}
+          hideConnectors={true}
+          onRerun={() => handleRerun(`${type}-${index}`)}
+        />
+        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
+          Error
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Building Block States</h1>
-          <Link
-            href="/playground"
-            className="text-blue-500 hover:text-blue-600"
-          >
-            ← Back to Playground
-          </Link>
-        </div>
+    <div className="min-h-screen bg-white text-gray-800">
+      <BreadcrumbHeader
+        currentPage="Diagram block"
+        isCompact={isCompact}
+        setIsCompact={setIsCompact}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Placeholder for state demos */}
-          <div className="border rounded-lg p-6 flex flex-col items-center">
-            <div className="w-24 h-24 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-              Idle
+      <div className="p-8 space-y-12 max-w-7xl mx-auto">
+        {BLOCK_DEFINITIONS.blockTypes.map(
+          (blockType: {
+            type: BlockType;
+            name: string;
+            description: string;
+          }) => (
+            <div key={blockType.type} className="grid grid-cols-3 gap-6">
+              <div className="mb-4 text-sm col-span-1">
+                <h2 className="font-semibold mb-2">{blockType.name}</h2>
+                <p className="text-gray-600 mb-2 max-w-xl">
+                  {blockType.description}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-6 pt-8 rounded-lg mb-12 col-span-2">
+                {/* Map the correct block component based on type */}
+                {blockType.type === "trigger" &&
+                  renderBlockStates(TriggerBlock, "trigger")}
+                {blockType.type === "extraction" &&
+                  renderBlockStates(ExtractionBlock, "extraction")}
+                {blockType.type === "condition" &&
+                  renderBlockStates(ConditionBlock, "condition")}
+                {blockType.type === "generation" &&
+                  renderBlockStates(GenerationBlock, "generation")}
+                {blockType.type === "action" &&
+                  renderBlockStates(ActionBlock, "action")}
+              </div>
             </div>
-            <p className="text-sm text-gray-600">Default state</p>
-          </div>
-
-          <div className="border rounded-lg p-6 flex flex-col items-center">
-            <div className="w-24 h-24 bg-blue-100 rounded-lg mb-4 flex items-center justify-center animate-pulse">
-              Running
-            </div>
-            <p className="text-sm text-gray-600">Processing state</p>
-          </div>
-
-          <div className="border rounded-lg p-6 flex flex-col items-center">
-            <div className="w-24 h-24 bg-green-100 rounded-lg mb-4 flex items-center justify-center">
-              Finished
-            </div>
-            <p className="text-sm text-gray-600">Completed state</p>
-          </div>
-        </div>
-
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Controls</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Block Size
-              </label>
-              <input
-                type="range"
-                min="64"
-                max="200"
-                defaultValue="96"
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Animation Speed
-              </label>
-              <select className="block w-full border rounded-md py-2 px-3">
-                <option>Slow</option>
-                <option>Normal</option>
-                <option>Fast</option>
-              </select>
-            </div>
-          </div>
-        </div>
+          )
+        )}
       </div>
     </div>
   );

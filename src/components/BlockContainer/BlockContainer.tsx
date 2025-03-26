@@ -1,4 +1,4 @@
-import { Block } from "../Block/Block";
+import Block from "../blocks/Block";
 import { Connector } from "../Connector/Connector";
 import { useDiagramStore } from "../../store/useDiagramStore";
 import { useEffect, useRef, useState } from "react";

@@ -77,6 +77,11 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --trigger-color: #2563eb; /* blue-600 */
+  --extraction-color: #9333ea; /* purple-600 */
+  --generation-color: #16a34a; /* green-600 */
+  --condition-color: #ea580c; /* orange-600 */
+  --action-color: #dc2626; /* red-600 */
 }
 
 .dark {

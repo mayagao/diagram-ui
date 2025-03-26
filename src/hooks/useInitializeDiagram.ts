@@ -13,5 +13,5 @@ export function useInitializeDiagram() {
       addBlock("transformer", { name: "Processor Block" });
       addBlock("output", { name: "Output Block" });
     }
-  }, []); // Empty dependency array ensures this only runs once
+  }, [addBlock, blocks.length]);
 }
