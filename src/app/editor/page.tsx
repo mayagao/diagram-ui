@@ -3,22 +3,30 @@
 import Link from "next/link";
 import { Canvas } from "../../components/Canvas/Canvas";
 import { useDiagramStore } from "../../store/useDiagramStore";
-import { BlockType } from "../../types/diagram";
+import { BlockType } from "@/types/diagram";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   ArrowLeftIcon,
   PlayIcon,
-  CpuChipIcon,
   ArrowPathIcon,
-  DocumentIcon,
+  DocumentTextIcon,
+  DocumentCheckIcon,
+  DocumentDuplicateIcon,
+  DocumentMagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { BlockConfigForm } from "../../components/BlockConfigForm/BlockConfigForm";
 
-const blockTypeIcons = {
-  processor: CpuChipIcon,
-  transformer: ArrowPathIcon,
-  output: DocumentIcon,
+const blockIconMap: Record<
+  BlockType,
+  React.ForwardRefExoticComponent<React.SVGProps<SVGSVGElement>>
+> = {
+  trigger: DocumentTextIcon,
+  extraction: DocumentMagnifyingGlassIcon,
+  generation: DocumentDuplicateIcon,
+  condition: ArrowPathIcon,
+  action: DocumentCheckIcon,
+  end: DocumentTextIcon,
 };
 
 export default function EditorPage() {
@@ -44,8 +52,8 @@ export default function EditorPage() {
 
         {/* Centered Add Block buttons */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {(Object.keys(blockTypeIcons) as BlockType[]).map((type) => {
-            const Icon = blockTypeIcons[type];
+          {(Object.keys(blockIconMap) as BlockType[]).map((type) => {
+            const Icon = blockIconMap[type];
             return (
               <Button
                 key={type}
