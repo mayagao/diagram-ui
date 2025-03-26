@@ -42,8 +42,10 @@ interface ConnectorProps {
 
 // Icon container component
 export function BlockIcon({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   color: _color,
   icon: Icon,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type: _type,
   isCompact = false,
   state = "idle",
@@ -83,7 +85,10 @@ export function InputConnector({}: ConnectorProps) {
   );
 }
 
-export function OutputConnector({ isLoading: _isLoading }: ConnectorProps) {
+export function OutputConnector({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isLoading: _isLoading,
+}: ConnectorProps) {
   return (
     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
       <div className="w-3 h-3 bg-white border border-gray-100 rounded-full" />
@@ -122,6 +127,7 @@ export function BlockContent({
 // Running indicator component
 export function RunningBlock({
   action,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isCompact: _isCompact = false,
 }: {
   action: string;
@@ -139,6 +145,7 @@ export function RunningBlock({
 
 // Output results component
 export function OutputResult({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type: _type,
   result,
   isCompact = false,
@@ -164,9 +171,12 @@ export function OutputResult({
 
 // Notebook-specific block styling
 export function NotebookBlock({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type: _type,
   title,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   description: _description,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   color: _color,
   icon: Icon,
   isCompact = false,

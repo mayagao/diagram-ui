@@ -64,6 +64,7 @@ export default function Block(props: ExtendedBlockProps) {
     color,
     icon: Icon,
     size = "default",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _isInDiagram = true,
     isInNotebook = false,
     isCompact = false,
@@ -153,8 +154,11 @@ function NotebookView({
   onPause,
   onRerun,
   customResultRenderer,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isHovered,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setIsHovered,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isRunning,
   isFinished,
 }: ExtendedBlockProps & {
@@ -288,6 +292,7 @@ function DiagramView({
   icon: Icon,
   inputs = 0,
   outputs = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   size = "default",
   isCompact = false,
   isRunning,

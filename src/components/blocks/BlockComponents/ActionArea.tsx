@@ -38,6 +38,7 @@ export function ActionArea({
     icon: React.ReactNode,
     tooltipText: string,
     onClick?: () => void,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _bgClass = ""
   ) => (
     <Tooltip delayDuration={100}>

@@ -51,16 +51,12 @@ export default function GenerationBlock({
     if (!result || !result.data) return null;
 
     // Extract the text data if it exists
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let generatedText: string | undefined;
-    // Remove unused _tokens or add an actual use for it
-    // let _tokens: number | undefined;
 
     if (result.data.text && typeof result.data.text === "string") {
       generatedText = result.data.text;
     }
-    // if (result.data.tokens && typeof result.data.tokens === "number") {
-    //   _tokens = result.data.tokens;
-    // }
 
     // For compact mode, just show the document name
     if (isCompact) {
@@ -105,7 +101,6 @@ export default function GenerationBlock({
     );
   };
 
-  // Fix the catch clause with unused variable
   const getSections = (data: Record<string, unknown>) => {
     let sections: unknown[] = [];
     try {
@@ -114,8 +109,10 @@ export default function GenerationBlock({
       } else if (Array.isArray(data.sections)) {
         sections = data.sections;
       }
-    } catch (_) {
-      // Changed to just underscore
+    } catch (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _
+    ) {
       sections = [];
     }
     return sections;
