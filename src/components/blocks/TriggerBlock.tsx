@@ -82,23 +82,38 @@ const TriggerBlock: React.FC<TriggerBlockProps> = ({
           <>
             {isCompact ? (
               <div className="text-xs text-gray-700 truncate">
-                {result.data.filename || "Untitled Document"}
+                {result.data.title ||
+                  result.data.filename ||
+                  "Untitled Document"}
+                <div className="text-gray-600 truncate">
+                  {result.data.description ||
+                    result.data.documentType ||
+                    "Unknown Type"}
+                </div>
               </div>
             ) : (
               <>
                 <div className="font-medium text-gray-800 truncate">
-                  {result.data.filename || "Untitled Document"}
+                  {result.data.title ||
+                    result.data.filename ||
+                    "Untitled Document"}
                 </div>
                 <div className="text-gray-600 flex items-center truncate">
-                  <span>{result.data.documentType || "Unknown Type"}</span>
-                  <span className="px-1 text-gray-200">•</span>
                   <span>
-                    {result.data.pageCount
-                      ? `${result.data.pageCount} page${
-                          result.data.pageCount !== 1 ? "s" : ""
-                        }`
-                      : ""}
+                    {result.data.description ||
+                      result.data.documentType ||
+                      "Unknown Type"}
                   </span>
+                  {result.data.pageCount && (
+                    <>
+                      <span className="px-1 text-gray-200">•</span>
+                      <span>
+                        {`${result.data.pageCount} page${
+                          result.data.pageCount !== 1 ? "s" : ""
+                        }`}
+                      </span>
+                    </>
+                  )}
                 </div>
               </>
             )}

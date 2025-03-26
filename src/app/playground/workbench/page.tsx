@@ -138,7 +138,7 @@ export default function NotebookWorkflowPage() {
     return (
       <div key={group.id} className="relative">
         <div className="space-y-4">
-          {group.blocks.map((blockId, index) => {
+          {group.blocks.map((blockId) => {
             // Find the block data by ID
             let foundBlockType: BlockType | null = null;
             let foundBlockIndex = -1;
@@ -162,14 +162,6 @@ export default function NotebookWorkflowPage() {
 
             return (
               <div key={blockId} className="relative">
-                {/* Vertical line for visual flow */}
-                {index < group.blocks.length - 1 && (
-                  <div className="absolute left-4 top-12 bottom-0 w-0.5 bg-gray-200" />
-                )}
-                {/* Horizontal line connecting to the next block */}
-                {index < group.blocks.length - 1 && (
-                  <div className="absolute left-4 top-12 w-8 h-0.5 bg-gray-200" />
-                )}
                 {/* Block with indentation */}
                 <div className="pl-8">
                   {renderBlock(foundBlockType, foundBlockIndex)}

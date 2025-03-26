@@ -207,6 +207,8 @@ export function NotebookBlock({
       ? "bg-blue-50"
       : state === "error"
       ? "bg-red-50"
+      : state === "finished"
+      ? "bg-gray-50"
       : "bg-white";
 
   const handleMouseEnter = () => {

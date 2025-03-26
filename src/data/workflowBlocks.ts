@@ -46,37 +46,31 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       description: "Trigger workflow when a new email is received",
       inputs: {
         email: {
-          type: "string",
-          description: "Email content to process",
-          default: "",
-        },
-        api: {
-          type: "code",
-          description: "API configuration",
-          language: "typescript",
-          default: `const response = await fetch('https://api.example.com/email', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(email)
-});`,
+          type: "object",
+          description: "Email content and metadata",
         },
       },
       outputs: [
         {
           name: "emailData",
           type: "object",
-          description: "Processed email data",
+          description: "Parsed email data",
         },
       ],
-      actions: ["Receiving email", "Processing content", "Validating data"],
+      actions: [
+        "Checking email server",
+        "Downloading email",
+        "Processing attachments",
+      ],
       result: {
-        summary: "Email processed successfully",
+        summary: "Email received and processed",
         data: {
-          subject: "Policy Update Request",
-          sender: "customer@example.com",
-          timestamp: "2024-03-26T10:00:00Z",
+          title: "Untitled Document",
+          description: "Unknown Type",
+          filename: "document.pdf",
+          documentType: "PDF",
+          pageCount: 3,
+          status: "processed",
         },
       },
     },
@@ -206,8 +200,29 @@ export const workflowBlocks: Record<string, BlockData[]> = {
       result: {
         summary: "Payment status checked",
         data: {
-          hasPayment: true,
-          paymentDate: "2024-03-26T10:00:00Z",
+          details: [
+            {
+              rule: "Payment Received",
+              status: "failed",
+              message: "No payment found in the last 30 days",
+            },
+            {
+              rule: "Payment Amount",
+              status: "pending",
+              message: "Waiting for payment verification",
+            },
+            {
+              rule: "Payment Method",
+              status: "passed",
+              message: "Valid payment method on file",
+            },
+          ],
+          passedRules: 1,
+          failedRules: 1,
+          pendingRules: 1,
+          totalRules: 3,
+          hasPayment: false,
+          paymentDate: null,
         },
       },
     },

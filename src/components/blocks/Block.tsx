@@ -12,7 +12,6 @@ import {
   BlockContent,
   InputConnector,
   OutputConnector,
-  OutputResult,
   NotebookBlock,
 } from "./BlockComponents";
 import { ActionArea } from "./BlockComponents/ActionArea";
@@ -40,7 +39,10 @@ interface ExtendedBlockProps extends Omit<BlockProps, "type"> {
   onRun?: () => void;
   onPause?: () => void;
   onRerun?: () => void;
-  customResultRenderer?: (result: BlockResult) => React.ReactNode;
+  customResultRenderer?: (
+    result: BlockResult,
+    isCompact?: boolean
+  ) => React.ReactNode;
   hideConnectors?: boolean;
 }
 
@@ -146,6 +148,13 @@ export default function Block(props: ExtendedBlockProps) {
   );
 }
 
+interface NotebookViewProps extends ExtendedBlockProps {
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
+  isRunning: boolean;
+  isFinished: boolean;
+}
+
 // Notebook view implementation
 function NotebookView({
   type,
@@ -169,12 +178,7 @@ function NotebookView({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isRunning,
   isFinished,
-}: ExtendedBlockProps & {
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
-  isRunning: boolean;
-  isFinished: boolean;
-}) {
+}: NotebookViewProps) {
   // Add state variables at the top of the component
   const isError = state === "error";
 
@@ -240,15 +244,27 @@ function NotebookView({
       if (isFinished && result) {
         // Use custom renderer if provided
         if (customResultRenderer) {
-          return customResultRenderer(result);
+          return customResultRenderer(result, isCompact);
         }
 
         return (
           <div
-            className={`px-2 py-1 rounded-md text-xs ${getBgColorByType(type)}`}
+            className={`px-2 py-1  bg-gray-50 border-t border-gray-200 text-xs `}
           >
-            <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
-              {result.summary}
+            <div className="mt-2 p-2 border rounded-lg text-xs">
+              <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                {result.summary}
+              </div>
+              {result.data && (
+                <div className="mt-1 text-xs opacity-80">
+                  {Object.entries(result.data).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span>{key}:</span>
+                      <span>{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -280,9 +296,23 @@ function NotebookView({
               className={`px-2 py-1  bg-gray-50 border-t border-gray-200 text-xs `}
             >
               {customResultRenderer ? (
-                customResultRenderer(result)
+                customResultRenderer(result, isCompact)
               ) : (
-                <OutputResult type={type} result={result} />
+                <div className="mt-2 p-2 border rounded-lg text-xs">
+                  <div className="font-medium overflow-hidden whitespace-nowrap text-ellipsis">
+                    {result.summary}
+                  </div>
+                  {result.data && (
+                    <div className="mt-1 text-xs opacity-80">
+                      {Object.entries(result.data).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span>{key}:</span>
+                          <span>{String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -290,6 +320,13 @@ function NotebookView({
       );
     }
   }
+}
+
+interface DiagramViewProps extends ExtendedBlockProps {
+  isRunning: boolean;
+  isFinished: boolean;
+  isHovered: boolean;
+  setIsHovered: (hover: boolean) => void;
 }
 
 // Diagram view implementation
@@ -317,12 +354,7 @@ function DiagramView({
   setIsHovered,
   hideConnectors,
   customResultRenderer,
-}: ExtendedBlockProps & {
-  isRunning: boolean;
-  isFinished: boolean;
-  isHovered: boolean;
-  setIsHovered: (hover: boolean) => void;
-}) {
+}: DiagramViewProps) {
   const isError = state === "error";
 
   return (
@@ -425,7 +457,7 @@ function DiagramView({
               isCompact ? "flex" : ""
             }`}
           >
-            {customResultRenderer(result)}
+            {customResultRenderer(result, isCompact)}
           </div>
         );
       }
@@ -464,7 +496,7 @@ function DiagramView({
       if (customResultRenderer) {
         return (
           <div className="border-t border-gray-100 p-2 text-xs bg-gray-50">
-            {customResultRenderer(result)}
+            {customResultRenderer(result, isCompact)}
           </div>
         );
       }
@@ -486,26 +518,6 @@ function DiagramView({
       );
     }
     return null;
-  }
-}
-
-// Helper function to get background colors based on block type
-function getBgColorByType(type: string | undefined) {
-  if (!type) return "bg-gray-50 border-gray-200 text-gray-700";
-
-  switch (type) {
-    case "trigger":
-      return "bg-blue-50 border-blue-200 text-blue-700";
-    case "extraction":
-      return "bg-purple-50 border-purple-200 text-purple-700";
-    case "generation":
-      return "bg-green-50 border-green-200 text-green-700";
-    case "condition":
-      return "bg-orange-50 border-orange-200 text-orange-700";
-    case "action":
-      return "bg-red-50 border-red-200 text-red-700";
-    default:
-      return "bg-gray-50 border-gray-200 text-gray-700";
   }
 }
 
