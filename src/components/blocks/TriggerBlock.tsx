@@ -1,11 +1,9 @@
 import React from "react";
 import {
   ArrowDownCircleIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
   // DocumentIcon
 } from "@heroicons/react/24/outline";
-import { Spinner } from "@/components/ui/spinner";
 import Block from "./Block";
 import { BLOCK_COLORS } from "@/types/blocks";
 import { BlockResult, BlockProps } from "@/types/blocks";
