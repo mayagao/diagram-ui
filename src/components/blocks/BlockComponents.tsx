@@ -242,7 +242,7 @@ export function NotebookBlock({
             <div
               className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0`}
             >
-              <Icon className="text-gray-500" />
+              <Icon className="w-4 h-4 text-gray-500" aria-hidden="true" />
             </div>
           )}
           <h3 className={`font-medium text-gray-800 text-sm`}>{title}</h3>

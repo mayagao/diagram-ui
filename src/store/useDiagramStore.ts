@@ -7,11 +7,11 @@ import {
   BlockType,
   DiagramState,
   VALID_CONNECTIONS,
-  MAX_CONNECTIONS,
+  BLOCK_IO,
 } from "../types/diagram";
 
-const VERTICAL_SPACING = 8; // Grid units between blocks
-const INITIAL_COLUMN = 10; // Fixed horizontal position for blocks
+const VERTICAL_SPACING = 120; // Pixels between blocks
+const INITIAL_X = 200; // Fixed horizontal position for blocks
 
 interface DiagramStore extends DiagramState {
   // Block operations
@@ -23,7 +23,12 @@ interface DiagramStore extends DiagramState {
   reorderBlocks: () => void;
 
   // Connection operations
-  connectBlocks: (sourceId: string, targetId: string) => boolean;
+  connectBlocks: (
+    sourceId: string,
+    targetId: string,
+    condition?: string,
+    isTrueBranch?: boolean
+  ) => boolean;
   removeConnection: (connectionId: string) => void;
 
   // Selection
@@ -46,11 +51,11 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
   addBlock: (type, config = {}) => {
     const { blocks } = get();
     const newPosition: Position = {
-      column: INITIAL_COLUMN,
-      row:
+      x: INITIAL_X,
+      y:
         blocks.length > 0
-          ? blocks[blocks.length - 1].position.row + VERTICAL_SPACING
-          : 5,
+          ? blocks[blocks.length - 1].position.y + VERTICAL_SPACING
+          : 100,
     };
 
     const newBlock: Block = {
@@ -90,7 +95,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
     }
 
     const orderedBlocks = [...blocks].sort(
-      (a, b) => a.position.row - b.position.row
+      (a, b) => a.position.y - b.position.y
     );
 
     // Clear existing connections
@@ -109,7 +114,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
 
       // Force connection regardless of type
       const newConnection: Connection = {
-        id: `conn-${sourceBlock.id}-${targetBlock.id}`,
+        id: nanoid(),
         sourceId: sourceBlock.id,
         targetId: targetBlock.id,
       };
@@ -150,15 +155,15 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
   reorderBlocks: () => {
     set((state) => {
       const orderedBlocks = [...state.blocks].sort(
-        (a, b) => a.position.row - b.position.row
+        (a, b) => a.position.y - b.position.y
       );
 
       // Reposition blocks with even spacing
       const updatedBlocks = orderedBlocks.map((block, index) => ({
         ...block,
         position: {
-          column: INITIAL_COLUMN,
-          row: 5 + index * VERTICAL_SPACING,
+          x: INITIAL_X,
+          y: 100 + index * VERTICAL_SPACING,
         },
       }));
 
@@ -185,8 +190,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
       const orderedBlocks = newState.blocks.map((block, index) => ({
         ...block,
         position: {
-          column: INITIAL_COLUMN,
-          row: 5 + index * VERTICAL_SPACING,
+          x: INITIAL_X,
+          y: 100 + index * VERTICAL_SPACING,
         },
       }));
 
@@ -202,7 +207,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
 
       // Sort blocks by vertical position
       const orderedBlocks = [...updatedBlocks].sort(
-        (a, b) => a.position.row - b.position.row
+        (a, b) => a.position.y - b.position.y
       );
 
       return {
@@ -245,8 +250,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
     if (!validTargetTypes.includes(targetBlock.type)) return false;
 
     // Check connection limits
-    const sourceMaxOutputs = MAX_CONNECTIONS[sourceBlock.type].outputs;
-    const targetMaxInputs = MAX_CONNECTIONS[targetBlock.type].inputs;
+    const sourceMaxOutputs = BLOCK_IO[sourceBlock.type].outputs;
+    const targetMaxInputs = BLOCK_IO[targetBlock.type].inputs;
 
     if (sourceBlock.outputs.length >= sourceMaxOutputs) return false;
     if (targetBlock.inputs.length >= targetMaxInputs) return false;
@@ -254,7 +259,7 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
     return true;
   },
 
-  connectBlocks: (sourceId, targetId) => {
+  connectBlocks: (sourceId, targetId, condition, isTrueBranch) => {
     const canConnect = get().canConnectBlocks(sourceId, targetId);
     if (!canConnect) return false;
 
@@ -262,6 +267,8 @@ export const useDiagramStore = create<DiagramStore>((set, get) => ({
       id: nanoid(),
       sourceId,
       targetId,
+      condition,
+      isTrueBranch,
     };
 
     set((state) => ({

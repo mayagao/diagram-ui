@@ -26,8 +26,8 @@ export function Canvas() {
 
       // Snap to grid
       const snappedPosition: Position = {
-        row: Math.round(y / GRID_SIZE),
-        column: Math.round(x / GRID_SIZE),
+        x: Math.round(x / GRID_SIZE) * GRID_SIZE,
+        y: Math.round(y / GRID_SIZE) * GRID_SIZE,
       };
 
       updateBlockPosition(selectedBlockId, snappedPosition);

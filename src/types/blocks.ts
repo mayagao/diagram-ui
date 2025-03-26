@@ -13,7 +13,8 @@ export type BlockType =
   | "extraction"
   | "generation"
   | "condition"
-  | "action";
+  | "action"
+  | "end";
 
 export type BlockState = "idle" | "running" | "finished" | "error" | "paused";
 
@@ -82,5 +83,10 @@ export const BLOCK_COLORS = {
     light: "bg-red-100",
     medium: "bg-red-500",
     dark: "bg-red-700",
+  },
+  end: {
+    light: "bg-gray-100",
+    medium: "bg-gray-500",
+    dark: "bg-gray-700",
   },
 };

@@ -206,7 +206,9 @@ function NotebookView({
               isCompact ? "px-2 pb-2" : ""
             }`}
           >
-            <div className="flex-grow">{renderNotebookContent()}</div>
+            <div className={`${isCompact ? "flex gap-2" : ""} w-full`}>
+              {renderNotebookContent()}
+            </div>
           </div>
         </>
       )}
@@ -418,7 +420,11 @@ function DiagramView({
       // Use custom renderer if provided
       if (customResultRenderer) {
         return (
-          <div className="text-xs text-gray-600">
+          <div
+            className={`text-xs text-gray-600 truncate ${
+              isCompact ? "flex" : ""
+            }`}
+          >
             {customResultRenderer(result)}
           </div>
         );
@@ -457,7 +463,7 @@ function DiagramView({
       // Use custom renderer if provided
       if (customResultRenderer) {
         return (
-          <div className="p-2 text-xs bg-gray-50">
+          <div className="border-t border-gray-100 p-2 text-xs bg-gray-50">
             {customResultRenderer(result)}
           </div>
         );
