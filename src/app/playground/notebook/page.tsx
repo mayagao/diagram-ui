@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import TriggerBlock from "@/components/blocks/TriggerBlock";
 import ExtractionBlock from "@/components/blocks/ExtractionBlock";
 import GenerationBlock from "@/components/blocks/GenerationBlock";
@@ -8,12 +9,13 @@ import ConditionBlock from "@/components/blocks/ConditionBlock";
 import ActionBlock from "@/components/blocks/ActionBlock";
 import { workflowBlocks } from "@/data/workflowBlocks";
 import { BlockState } from "@/types/blocks";
-import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 import BreadcrumbHeader from "../components/BreadcrumbHeader";
+import { BLOCK_DEFINITIONS, BlockType } from "@/data/block";
 
-export default function BlocksDemo() {
+export default function NotebookPage() {
   const [isCompact, setIsCompact] = useState(true);
   const [runningActionIndex, setRunningActionIndex] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [blockStates, setBlockStates] = useState<Record<string, BlockState>>(
     {}
   );
@@ -21,11 +23,29 @@ export default function BlocksDemo() {
   // Rotate through running actions for dynamic demonstration
   useEffect(() => {
     const interval = setInterval(() => {
-      setRunningActionIndex((prev) => (prev + 1) % 3); // Assuming 3 actions per block
-    }, 2000); // Change action every 2 seconds
+      setRunningActionIndex((prev) => (prev + 1) % 3);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
+
+  // Get the appropriate block component based on type
+  const getBlockComponent = (type: BlockType) => {
+    switch (type) {
+      case "trigger":
+        return TriggerBlock;
+      case "extraction":
+        return ExtractionBlock;
+      case "condition":
+        return ConditionBlock;
+      case "generation":
+        return GenerationBlock;
+      case "action":
+        return ActionBlock;
+      default:
+        return TriggerBlock;
+    }
+  };
 
   // Get current running action for a specific block type
   const getCurrentAction = (type: string, index: number) => {
@@ -55,13 +75,21 @@ export default function BlocksDemo() {
     // For the rules block, use the specific validation error message
     if (blockType === "rules" && errorData && "details" in errorData) {
       const details = errorData.details as unknown[];
+      // Type assertion to handle the find callback correctly
       const failedRule = details?.find(
-        (detail: Record<string, unknown>) => detail.status === "failed"
-      );
+        (detail) =>
+          typeof detail === "object" &&
+          detail !== null &&
+          "status" in detail &&
+          detail.status === "failed"
+      ) as Record<string, unknown> | undefined;
+
       if (failedRule) {
         return (
-          (failedRule.message as string) ||
-          `Rule validation failed: ${failedRule.rule as string}`
+          (typeof failedRule.message === "string" ? failedRule.message : "") ||
+          `Rule validation failed: ${
+            typeof failedRule.rule === "string" ? failedRule.rule : ""
+          }`
         );
       }
     }
@@ -123,88 +151,84 @@ export default function BlocksDemo() {
     setBlockStates((prev) => ({ ...prev, [blockId]: "running" }));
   };
 
-  const renderBlockStates = (
-    BlockComponent: React.ComponentType<Record<string, unknown>>,
+  // Use a generic type parameter to handle component props
+  const renderBlockStates = <T extends Record<string, unknown>>(
+    BlockComponent: React.ComponentType<T>,
     type: string,
     index: number = 0
   ) => (
     <div className="space-y-6">
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onRun={() => handleRun(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            isInNotebook: true,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRun: () => handleRun(`${type}-${index}`),
+          } as unknown as T)}
         />
-        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
-          Default
-        </div>
       </div>
 
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          state="running"
-          runningAction={getCurrentAction(type, index)}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onPause={() => handlePause(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            state: "running",
+            runningAction: getCurrentAction(type, index),
+            isInNotebook: true,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onPause: () => handlePause(`${type}-${index}`),
+          } as unknown as T)}
         />
-        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
-          Running
-        </div>
       </div>
 
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          state="paused"
-          runningAction={`Analysis paused`}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onRun={() => handleRun(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            state: "paused",
+            runningAction: `Analysis paused`,
+            isInNotebook: true,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRun: () => handleRun(`${type}-${index}`),
+          } as unknown as T)}
         />
-        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
-          Paused
-        </div>
       </div>
 
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          state="finished"
-          result={formatResult(workflowBlocks[type][index].result)}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onRerun={() => handleRerun(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            state: "finished",
+            result: formatResult(workflowBlocks[type][index].result),
+            isInNotebook: true,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRerun: () => handleRerun(`${type}-${index}`),
+          } as unknown as T)}
         />
-        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
-          Finished
-        </div>
       </div>
 
       <div>
         <BlockComponent
-          title={workflowBlocks[type][index].title}
-          description={workflowBlocks[type][index].description}
-          state="error"
-          errorMessage={getErrorMessage(type)}
-          isInNotebook={false}
-          isCompact={isCompact}
-          hideConnectors={true}
-          onRerun={() => handleRerun(`${type}-${index}`)}
+          {...({
+            title: workflowBlocks[type][index].title,
+            description: workflowBlocks[type][index].description,
+            state: "error",
+            errorMessage: getErrorMessage(type),
+            isInNotebook: true,
+            isCompact: isCompact,
+            hideConnectors: true,
+            onRerun: () => handleRerun(`${type}-${index}`),
+          } as unknown as T)}
         />
-        <div className="text-xs mx-auto text-center mt-1 text-gray-500">
-          Error
-        </div>
       </div>
     </div>
   );
@@ -212,35 +236,28 @@ export default function BlocksDemo() {
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <BreadcrumbHeader
-        currentPage="Diagram block"
+        currentPage="Notebook block"
         isCompact={isCompact}
         setIsCompact={setIsCompact}
       />
 
-      <div className="p-8 space-y-12 max-w-7xl mx-auto">
-        {BLOCK_DEFINITIONS.blockTypes.map((blockType) => (
-          <div key={blockType.type} className="grid grid-cols-3 gap-6">
-            <div className="mb-4 text-sm col-span-1">
-              <h2 className="font-semibold mb-2">{blockType.name}</h2>
-              <p className="text-gray-600 mb-2 max-w-xl">
-                {blockType.description}
-              </p>
+      <div className="p-8">
+        <div className="max-w-7xl mx-auto space-y-12 text-sm ">
+          {BLOCK_DEFINITIONS.blockTypes.map((blockType) => (
+            <div key={blockType.type} className="grid grid-cols-3 gap-6">
+              <div className="mb-6 col-span-1">
+                <h2 className=" font-semibold mb-2">{blockType.name}</h2>
+                <p className="text-gray-600">{blockType.description}</p>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-lg col-span-2">
+                {renderBlockStates(
+                  getBlockComponent(blockType.type),
+                  blockType.type
+                )}
+              </div>
             </div>
-            <div className="bg-gray-50 p-6 pt-8 rounded-lg mb-12 col-span-2">
-              {/* Map the correct block component based on type */}
-              {blockType.type === "trigger" &&
-                renderBlockStates(TriggerBlock, "trigger")}
-              {blockType.type === "extraction" &&
-                renderBlockStates(ExtractionBlock, "extraction")}
-              {blockType.type === "condition" &&
-                renderBlockStates(ConditionBlock, "condition")}
-              {blockType.type === "generation" &&
-                renderBlockStates(GenerationBlock, "generation")}
-              {blockType.type === "action" &&
-                renderBlockStates(ActionBlock, "action")}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

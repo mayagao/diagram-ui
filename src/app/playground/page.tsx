@@ -1,84 +1,62 @@
-import Link from "next/link";
+"use client";
 
-const demos = [
-  {
-    category: "Building Blocks",
-    items: [
-      {
-        title: "Basic States",
-        description: "Explore idle, running, and finished states",
-        href: "/playground/blocks",
-      },
-      {
-        title: "Connection Points",
-        description: "Test different connection configurations",
-        href: "/playground/blocks/connections",
-      },
-    ],
-  },
-  {
-    category: "Canvas Features",
-    items: [
-      {
-        title: "Grid System",
-        description: "Test grid layouts and snapping",
-        href: "/playground/canvas",
-      },
-      {
-        title: "Drag and Drop",
-        description: "Experiment with block interactions",
-        href: "/playground/canvas/dnd",
-      },
-    ],
-  },
-  {
-    category: "Panels",
-    items: [
-      {
-        title: "Preview Panel",
-        description: "Input/Output preview layouts",
-        href: "/playground/panels/preview",
-      },
-      {
-        title: "Config Panel",
-        description: "Block configuration controls",
-        href: "/playground/panels/config",
-      },
-    ],
-  },
-];
+import Link from "next/link";
+import { useState } from "react";
+import BreadcrumbHeader from "./components/BreadcrumbHeader";
 
 export default function PlaygroundPage() {
-  return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-bold">Component Playground</h1>
-          <Link href="/" className="text-blue-500 hover:text-blue-600">
-            ← Back to Home
-          </Link>
-        </div>
+  const [isCompact, setIsCompact] = useState(false);
 
-        <div className="space-y-12">
-          {demos.map((section) => (
-            <div key={section.category}>
-              <h2 className="text-2xl font-semibold mb-4">
-                {section.category}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {section.items.map((demo) => (
-                  <Link
-                    key={demo.href}
-                    href={demo.href}
-                    className="p-4 border rounded-lg hover:border-blue-500 transition-colors"
-                  >
-                    <h3 className="text-lg font-medium mb-1">{demo.title}</h3>
-                    <p className="text-gray-600 text-sm">{demo.description}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+  return (
+    <div className="min-h-screen bg-white text-gray-800">
+      <BreadcrumbHeader
+        currentPage="Playground"
+        isCompact={isCompact}
+        setIsCompact={setIsCompact}
+      />
+
+      <div className="p-8 max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Playground</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Cards for each playground section */}
+          <Link
+            href="/playground/diagram"
+            className="p-6 border rounded-lg hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-semibold mb-2">Diagram workflow</h2>
+            <p className="text-gray-600">Visual workflow builder interface</p>
+          </Link>
+
+          <Link
+            href="/playground/workbench"
+            className="p-6 border rounded-lg hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-semibold mb-2">Notebook workflow</h2>
+            <p className="text-gray-600">
+              Interactive workflow testing environment
+            </p>
+          </Link>
+
+          <Link
+            href="/playground/blocks"
+            className="p-6 border rounded-lg hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-semibold mb-2">Diagram block</h2>
+            <p className="text-gray-600">
+              Explore and interact with different types of workflow blocks
+            </p>
+          </Link>
+
+          <Link
+            href="/playground/notebook"
+            className="p-6 border rounded-lg hover:shadow-md transition-shadow"
+          >
+            <h2 className="text-xl font-semibold mb-2">Notebook block</h2>
+            <p className="text-gray-600">
+              Interactive notebook with blocks in notebook mode
+            </p>
+          </Link>
         </div>
       </div>
     </div>
